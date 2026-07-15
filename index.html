@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Kariwala Connect</title>
+<meta name="description" content="Events, schedules and files for every Kariwala Industries event.">
+<meta name="theme-color" content="#10233F">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kariwala">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --navy:#10233F;
+    --navy-soft:#1B3A63;
+    --orange:#E8792B;
+    --orange-deep:#C4611D;
+    --bg:#F3F5F8;
+    --card:#FFFFFF;
+    --ink:#182432;
+    --ink-soft:#66748A;
+    --line:#E3E8EF;
+    --good:#2E9E6D;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Work Sans',sans-serif;
+    padding-bottom:78px;
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:30;
+    background:var(--navy);
+    color:#fff;
+    padding:14px 18px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .topbar .mark{width:26px;height:26px;flex-shrink:0;}
+  .topbar .mark circle{fill:none;stroke:var(--orange);stroke-width:2.4;}
+  .topbar .mark rect{fill:none;stroke:#fff;stroke-width:2.4;}
+  .topbar .word{font-family:'Fraunces',serif;font-weight:700;font-size:1.15rem;}
+  .topbar .word b{color:var(--orange);font-weight:700;}
+  .topbar .back{
+    background:none;border:none;color:#fff;padding:2px 6px 2px 0;
+    display:flex;align-items:center;cursor:pointer;
+  }
+  .topbar .back svg{width:20px;height:20px;}
+  .topbar .refresh{
+    margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.8);cursor:pointer;
+    display:flex;align-items:center;padding:4px;
+  }
+  .topbar .refresh svg{width:18px;height:18px;}
+  .topbar .refresh.spinning svg{animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  main{max-width:520px;margin:0 auto;padding:18px 16px 8px;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ---------- Home hero ---------- */
+  .hero-card{
+    background:linear-gradient(150deg, var(--navy) 0%, #0A1526 100%);
+    color:#fff;
+    border-radius:var(--radius);
+    padding:22px 20px;
+    margin-bottom:22px;
+  }
+  .hero-card .eyebrow{color:var(--orange);font-weight:600;font-size:0.85rem;margin-bottom:6px;}
+  .hero-card h1{font-family:'Fraunces',serif;font-size:1.5rem;margin:0 0 6px;font-weight:700;}
+  .hero-card p{margin:0;color:rgba(255,255,255,0.72);font-size:0.88rem;}
+
+  .section-title{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin:4px 2px 12px;
+  }
+  .section-title h2{font-size:1.02rem;margin:0;font-weight:700;}
+  .section-title a{color:var(--orange-deep);font-size:0.82rem;font-weight:600;}
+
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px;}
+  .tile{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px 8px 12px;text-align:center;cursor:pointer;
+  }
+  .tile .ic{
+    width:42px;height:42px;border-radius:12px;background:var(--navy);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 8px;
+  }
+  .tile .ic svg{width:20px;height:20px;stroke:#fff;fill:none;}
+  .tile span{font-size:0.74rem;font-weight:600;color:var(--ink);}
+
+  /* ---------- Event cards ---------- */
+  .event-card{
+    display:flex;gap:14px;align-items:stretch;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px;margin-bottom:12px;cursor:pointer;
+  }
+  .event-badge{
+    width:76px;flex-shrink:0;border-radius:10px;background:var(--navy);color:#fff;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    font-family:'Fraunces',serif;font-weight:700;font-size:0.72rem;line-height:1.25;
+    padding:6px;
+  }
+  .event-info{flex:1;min-width:0;}
+  .event-info h3{margin:0 0 5px;font-size:0.98rem;font-weight:700;}
+  .event-info .loc, .event-info .date{
+    font-size:0.78rem;color:var(--ink-soft);display:flex;align-items:center;gap:5px;margin-bottom:3px;
+  }
+  .event-info .loc svg, .event-info .date svg{width:12px;height:12px;flex-shrink:0;}
+  .status-pill{
+    display:inline-block;margin-top:6px;font-size:0.68rem;font-weight:700;
+    padding:3px 9px;border-radius:999px;letter-spacing:0.02em;
+  }
+  .status-Upcoming{background:#E7EEFF;color:#2C4FBF;}
+  .status-Live{background:#E5F6EC;color:var(--good);}
+  .status-Past{background:#EEF0F3;color:var(--ink-soft);}
+  .event-chevron{align-self:center;color:var(--ink-soft);flex-shrink:0;}
+  .event-chevron svg{width:16px;height:16px;}
+
+  .empty{
+    text-align:center;color:var(--ink-soft);font-size:0.85rem;padding:36px 10px;
+  }
+  .empty svg{width:36px;height:36px;stroke:var(--line);margin-bottom:10px;}
+
+  /* ---------- Events view toggle + search ---------- */
+  .seg{
+    display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:14px;
+  }
+  .seg button{
+    flex:1;border:none;background:transparent;border-radius:999px;padding:9px 6px;
+    font-size:0.82rem;font-weight:600;color:var(--ink-soft);cursor:pointer;
+  }
+  .seg button.active{background:var(--navy);color:#fff;}
+  .search{
+    width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;
+    padding:11px 14px;font-size:0.86rem;margin-bottom:16px;font-family:inherit;
+  }
+  .search:focus{outline:2px solid var(--orange);outline-offset:1px;}
+
+  /* ---------- Detail view ---------- */
+  .detail-hero{
+    background:var(--navy);color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:18px;
+  }
+  .detail-hero .badge-tag{
+    display:inline-block;background:rgba(232,121,43,0.18);color:var(--orange);
+    font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:999px;margin-bottom:10px;
+  }
+  .detail-hero h1{font-family:'Fraunces',serif;font-size:1.35rem;margin:0 0 10px;font-weight:700;}
+  .detail-hero .meta{font-size:0.82rem;color:rgba(255,255,255,0.78);display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+  .detail-hero .meta svg{width:13px;height:13px;flex-shrink:0;}
+  .detail-hero .desc{margin-top:12px;font-size:0.84rem;color:rgba(255,255,255,0.85);line-height:1.5;}
+
+  .tabbar{display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:18px;}
+  .tabbar button{flex:1;border:none;background:transparent;border-radius:999px;padding:9px 6px;font-size:0.82rem;font-weight:600;color:var(--ink-soft);cursor:pointer;}
+  .tabbar button.active{background:var(--ink);color:#fff;}
+  .subview{display:none;}
+  .subview.active{display:block;}
+
+  .day-heading{font-family:'Fraunces',serif;font-weight:700;font-size:1.02rem;margin:18px 2px 12px;}
+  .day-heading:first-child{margin-top:0;}
+  .sched-row{display:flex;gap:14px;margin-bottom:12px;}
+  .sched-time{
+    width:88px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--orange-deep);
+    padding-top:14px;
+  }
+  .sched-card{
+    flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+  }
+  .sched-card .s-title{font-weight:600;font-size:0.92rem;}
+  .sched-card .s-mod{margin-top:6px;font-size:0.72rem;color:#B08A4F;font-weight:600;}
+
+  .file-card{
+    display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;margin-bottom:10px;
+  }
+  .file-ic{
+    width:38px;height:38px;border-radius:9px;background:#FBEDE1;color:var(--orange-deep);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .file-ic svg{width:18px;height:18px;}
+  .file-info{flex:1;min-width:0;}
+  .file-info .f-title{font-size:0.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .file-info .f-type{font-size:0.72rem;color:var(--ink-soft);}
+  .file-open{
+    background:var(--navy);color:#fff;border:none;border-radius:9px;padding:7px 12px;
+    font-size:0.74rem;font-weight:600;cursor:pointer;flex-shrink:0;
+  }
+
+  /* ---------- More view ---------- */
+  .more-group-label{font-size:0.72rem;font-weight:700;color:var(--ink-soft);letter-spacing:0.04em;margin:20px 4px 8px;text-transform:uppercase;}
+  .more-group-label:first-child{margin-top:0;}
+  .more-list{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  .more-item{
+    display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;
+  }
+  .more-item:last-child{border-bottom:none;}
+  .more-item .ic{width:34px;height:34px;border-radius:9px;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .more-item .ic svg{width:16px;height:16px;stroke:#fff;fill:none;}
+  .more-item .ic.orange{background:var(--orange);}
+  .more-item .txt{flex:1;}
+  .more-item .txt b{display:block;font-size:0.92rem;}
+  .more-item .txt small{color:var(--ink-soft);font-size:0.76rem;}
+  .more-item .chev{color:var(--ink-soft);flex-shrink:0;}
+  .more-item .chev svg{width:16px;height:16px;}
+
+  .install-steps{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:2px;}
+  .install-steps h3{margin:0 0 10px;font-size:0.9rem;}
+  .install-steps ol{margin:0;padding-left:18px;font-size:0.83rem;color:var(--ink-soft);line-height:1.7;}
+  .install-btn{
+    width:100%;background:var(--orange);color:#fff;border:none;border-radius:12px;
+    padding:13px;font-size:0.88rem;font-weight:700;margin-top:14px;cursor:pointer;display:none;
+  }
+
+  .about-card{
+    background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;margin-top:22px;
+  }
+  .about-card .word{font-family:'Fraunces',serif;font-weight:700;font-size:1.1rem;margin-bottom:6px;}
+  .about-card .word b{color:var(--orange);}
+  .about-card p{font-size:0.8rem;color:var(--ink-soft);line-height:1.6;margin:6px 0 0;}
+  .about-card .ver{margin-top:10px;font-size:0.7rem;color:#A6B0BF;}
+
+  /* ---------- Bottom nav ---------- */
+  .bottomnav{
+    position:fixed;bottom:0;left:0;right:0;z-index:30;
+    background:#fff;border-top:1px solid var(--line);
+    display:flex;padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  }
+  .navbtn{
+    flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:var(--ink-soft);cursor:pointer;padding:4px;font-family:inherit;
+  }
+  .navbtn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;}
+  .navbtn span{font-size:0.68rem;font-weight:600;}
+  .navbtn.active{color:var(--navy);}
+  .navbtn.active svg{stroke:var(--orange);}
+
+  .toast{
+    position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:0.8rem;
+    opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar">
+  <button class="back" id="backBtn" style="display:none;" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <svg class="mark" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26"/><circle cx="30" cy="30" r="18"/><rect x="19" y="19" width="22" height="22"/></svg>
+  <span class="word">Kariwala <b>Connect</b></span>
+  <button class="refresh" id="refreshBtn" aria-label="Refresh data">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+  </button>
+</div>
+
+<main>
+
+  <!-- HOME -->
+  <section class="view active" id="view-home">
+    <div class="hero-card">
+      <div class="eyebrow">Namaste!</div>
+      <h1>Welcome to Kariwala Connect</h1>
+      <p>Every company event, schedule and file — in one place.</p>
+    </div>
+
+    <div class="tiles">
+      <div class="tile" data-goto="events">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        <span>Events</span>
+      </div>
+      <div class="tile" data-goto="all-files">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <span>Files</span>
+      </div>
+      <div class="tile" data-goto="more">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+        <span>More</span>
+      </div>
+    </div>
+
+    <div class="section-title"><h2>Upcoming events</h2><a href="#" data-goto="events">View all</a></div>
+    <div id="home-upcoming"></div>
+  </section>
+
+  <!-- EVENTS -->
+  <section class="view" id="view-events">
+    <div class="seg" id="eventSeg">
+      <button class="active" data-status="Upcoming">Upcoming</button>
+      <button data-status="Past">Past</button>
+    </div>
+    <input class="search" id="eventSearch" placeholder="Search events or places…">
+    <div id="events-list"></div>
+  </section>
+
+  <!-- EVENT DETAIL -->
+  <section class="view" id="view-detail">
+    <div class="detail-hero" id="detail-hero"></div>
+    <div class="tabbar">
+      <button class="active" data-sub="programme">Programme</button>
+      <button data-sub="attachments">Attachments</button>
+    </div>
+    <div class="subview active" id="sub-programme"></div>
+    <div class="subview" id="sub-attachments"></div>
+  </section>
+
+  <!-- ALL FILES -->
+  <section class="view" id="view-all-files">
+    <div class="section-title"><h2>All files</h2></div>
+    <div id="all-files-list"></div>
+  </section>
+
+  <!-- MORE -->
+  <section class="view" id="view-more">
+    <div class="more-group-label">This event data</div>
+    <div class="more-list">
+      <div class="more-item" data-goto="events">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        <div class="txt"><b>All Events</b><small id="more-event-count">—</small></div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="more-item" id="refreshRow">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></div>
+        <div class="txt"><b>Refresh data</b><small id="last-synced">Pulls the latest from the Google Sheet</small></div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+    </div>
+
+    <div class="more-group-label">Install</div>
+    <div class="install-steps">
+      <h3>Add Kariwala Connect to your home screen</h3>
+      <ol id="install-steps-list"></ol>
+      <button class="install-btn" id="installBtn">Install app</button>
+    </div>
+
+    <div class="about-card">
+      <div class="word">Kariwala <b>Connect</b></div>
+      <p>The digital home for every Kariwala Industries event — one place for schedules, presentations and files. Built to save time and reduce paperwork.</p>
+      <div class="ver">v1.0</div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bottomnav">
+  <button class="navbtn active" data-goto="home">
+    <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="navbtn" data-goto="events">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span>Events</span>
+  </button>
+  <button class="navbtn" data-goto="all-files">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+    <span>Files</span>
+  </button>
+  <button class="navbtn" data-goto="more">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+    <span>More</span>
+  </button>
+</nav>
+
+<script>
+/* =========================================================================
+   CONFIG — this is the only part you normally need to touch.
+   Paste your Google Sheet ID below (the long code in the sheet's URL,
+   between /d/ and /edit). Keep the three tab names as they are, or change
+   them here if you named your tabs differently.
+   ========================================================================= */
+const CONFIG = {
+  SHEET_ID: "1I76IUMzsb76RBtol7RLYYGEwqr7J8JZ4mmG3Jh0YjDQ",
+  TABS: {
+    events: "Events",
+    schedule: "Schedule",
+    attachments: "Attachments"
+  }
+};
+/* ========================================================================= */
+
+function sheetUrl(tabName){
+  return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&t=${Date.now()}`;
+}
+
+function fetchCsv(tabName){
+  return new Promise((resolve) => {
+    if (CONFIG.SHEET_ID.includes("PASTE_YOUR")) { resolve([]); return; }
+    Papa.parse(sheetUrl(tabName), {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (res) => resolve(res.data || []),
+      error: () => resolve([])
+    });
+  });
+}
+
+let DATA = { events: [], schedule: [], attachments: [] };
+
+function parseDate(s){
+  if(!s) return null;
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function computeStatus(ev){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = parseDate(ev.StartDate);
+  const end = parseDate(ev.EndDate) || start;
+  if(!start) return "Upcoming";
+  if(today < start) return "Upcoming";
+  if(end && today > end) return "Past";
+  return "Live";
+}
+
+function fmtDateRange(ev){
+  const start = parseDate(ev.StartDate), end = parseDate(ev.EndDate);
+  const opts = { day:'numeric', month:'short', year:'numeric' };
+  if(!start) return ev.StartDate || '';
+  if(!end || start.toDateString() === end.toDateString()) return start.toLocaleDateString('en-GB', opts);
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const sOpt = sameMonth ? { day:'numeric' } : { day:'numeric', month:'short' };
+  return `${start.toLocaleDateString('en-GB', sOpt)} – ${end.toLocaleDateString('en-GB', opts)}`;
+}
+
+async function loadAll(spin){
+  if(spin) document.getElementById('refreshBtn').classList.add('spinning');
+  const [events, schedule, attachments] = await Promise.all([
+    fetchCsv(CONFIG.TABS.events),
+    fetchCsv(CONFIG.TABS.schedule),
+    fetchCsv(CONFIG.TABS.attachments)
+  ]);
+  DATA.events = events.filter(e => e.EventID && e.Name);
+  DATA.schedule = schedule.filter(s => s.EventID);
+  DATA.attachments = attachments.filter(a => a.EventID);
+  if(spin) document.getElementById('refreshBtn').classList.remove('spinning');
+  document.getElementById('last-synced').textContent = 'Last synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+  renderHome();
+  renderEvents();
+  renderAllFiles();
+  document.getElementById('more-event-count').textContent = DATA.events.length + ' events on file';
+}
+
+function eventBadge(ev){ return (ev.Badge || ev.Name || '').toUpperCase(); }
+
+function eventCardHtml(ev){
+  const status = computeStatus(ev);
+  return `
+    <div class="event-card" data-event="${ev.EventID}">
+      <div class="event-badge">${eventBadge(ev)}</div>
+      <div class="event-info">
+        <h3>${ev.Name}</h3>
+        ${ev.Location ? `<div class="loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7.5 8-13a8 8 0 1 0-16 0c0 5.5 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg>${ev.Location}</div>` : ''}
+        <div class="date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtDateRange(ev)}</div>
+        <span class="status-pill status-${status}">${status.toUpperCase()}</span>
+      </div>
+      <div class="event-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>`;
+}
+
+function emptyHtml(msg){
+  return `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><div>${msg}</div></div>`;
+}
+
+function renderHome(){
+  const upcoming = DATA.events
+    .filter(e => computeStatus(e) !== 'Past')
+    .sort((a,b) => (parseDate(a.StartDate)||0) - (parseDate(b.StartDate)||0))
+    .slice(0,3);
+  const el = document.getElementById('home-upcoming');
+  el.innerHTML = upcoming.length ? upcoming.map(eventCardHtml).join('') :
+    emptyHtml(CONFIG.SHEET_ID.includes('PASTE_YOUR') ? 'Connect a Google Sheet in the config to see events here.' : 'No upcoming events yet.');
+}
+
+let currentSeg = 'Upcoming';
+function renderEvents(){
+  const q = (document.getElementById('eventSearch').value || '').toLowerCase();
+  const list = DATA.events
+    .filter(e => currentSeg === 'Upcoming' ? computeStatus(e) !== 'Past' : computeStatus(e) === 'Past')
+    .filter(e => !q || (e.Name||'').toLowerCase().includes(q) || (e.Location||'').toLowerCase().includes(q))
+    .sort((a,b) => currentSeg === 'Upcoming'
+      ? (parseDate(a.StartDate)||0) - (parseDate(b.StartDate)||0)
+      : (parseDate(b.StartDate)||0) - (parseDate(a.StartDate)||0));
+  const el = document.getElementById('events-list');
+  el.innerHTML = list.length ? list.map(eventCardHtml).join('') : emptyHtml('No ' + currentSeg.toLowerCase() + ' events found.');
+}
+
+function fileIconSvg(url){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
+}
+
+function fileCardHtml(a){
+  return `
+    <a class="file-card" href="${a.FileURL}" target="_blank" rel="noopener">
+      <div class="file-ic">${fileIconSvg(a.FileURL)}</div>
+      <div class="file-info">
+        <div class="f-title">${a.Title || 'Untitled file'}</div>
+        <div class="f-type">${a.Type || 'Open in Drive'}</div>
+      </div>
+      <button class="file-open" type="button">Open</button>
+    </a>`;
+}
+
+function renderAllFiles(){
+  const el = document.getElementById('all-files-list');
+  const withEvent = DATA.attachments.map(a => {
+    const ev = DATA.events.find(e => e.EventID === a.EventID);
+    return { ...a, eventName: ev ? ev.Name : '' };
+  });
+  el.innerHTML = withEvent.length ? withEvent.map(a => `
+    <a class="file-card" href="${a.FileURL}" target="_blank" rel="noopener">
+      <div class="file-ic">${fileIconSvg(a.FileURL)}</div>
+      <div class="file-info">
+        <div class="f-title">${a.Title || 'Untitled file'}</div>
+        <div class="f-type">${a.eventName || a.Type || ''}</div>
+      </div>
+      <button class="file-open" type="button">Open</button>
+    </a>`).join('') : emptyHtml('No files uploaded yet.');
+}
+
+function openDetail(eventId){
+  const ev = DATA.events.find(e => e.EventID === eventId);
+  if(!ev) return;
+  const status = computeStatus(ev);
+  document.getElementById('detail-hero').innerHTML = `
+    <div class="badge-tag">${status.toUpperCase()}</div>
+    <h1>${ev.Name}</h1>
+    ${ev.Location ? `<div class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7.5 8-13a8 8 0 1 0-16 0c0 5.5 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg>${ev.Location}</div>` : ''}
+    <div class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtDateRange(ev)}</div>
+    ${ev.Description ? `<div class="desc">${ev.Description}</div>` : ''}
+  `;
+
+  const rows = DATA.schedule.filter(s => s.EventID === eventId);
+  const days = [...new Set(rows.map(r => r.Day))];
+  const progEl = document.getElementById('sub-programme');
+  progEl.innerHTML = days.length ? days.map(day => `
+    <div class="day-heading">${day}</div>
+    ${rows.filter(r => r.Day === day).map(r => `
+      <div class="sched-row">
+        <div class="sched-time">${r.Time || ''}</div>
+        <div class="sched-card">
+          <div class="s-title">${r.Session || ''}</div>
+          ${r.Speaker ? `<div class="s-mod">${r.Speaker}</div>` : ''}
+        </div>
+      </div>`).join('')}
+  `).join('') : emptyHtml('No schedule added yet.');
+
+  const files = DATA.attachments.filter(a => a.EventID === eventId);
+  document.getElementById('sub-attachments').innerHTML = files.length ? files.map(fileCardHtml).join('') : emptyHtml('No files added yet.');
+
+  setSubTab('programme');
+  goto('detail', true);
+}
+
+/* ---------- navigation ---------- */
+const VIEWS = ['home','events','detail','all-files','more'];
+function goto(name, isDetail){
+  VIEWS.forEach(v => document.getElementById('view-' + v).classList.toggle('active', v === name));
+  document.querySelectorAll('.navbtn').forEach(b => b.classList.toggle('active', b.dataset.goto === name));
+  document.getElementById('backBtn').style.display = isDetail ? 'flex' : 'none';
+  window.scrollTo(0,0);
+}
+document.getElementById('backBtn').addEventListener('click', () => goto('events'));
+
+document.addEventListener('click', (e) => {
+  const gotoEl = e.target.closest('[data-goto]');
+  if(gotoEl){ e.preventDefault(); goto(gotoEl.dataset.goto); return; }
+  const card = e.target.closest('.event-card');
+  if(card){ openDetail(card.dataset.event); return; }
+});
+
+document.getElementById('eventSeg').addEventListener('click', (e) => {
+  const btn = e.target.closest('button'); if(!btn) return;
+  document.querySelectorAll('#eventSeg button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSeg = btn.dataset.status;
+  renderEvents();
+});
+document.getElementById('eventSearch').addEventListener('input', renderEvents);
+
+document.querySelector('.tabbar').addEventListener('click', (e) => {
+  const btn = e.target.closest('button'); if(!btn) return;
+  setSubTab(btn.dataset.sub);
+});
+function setSubTab(name){
+  document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
+  document.getElementById('sub-programme').classList.toggle('active', name === 'programme');
+  document.getElementById('sub-attachments').classList.toggle('active', name === 'attachments');
+}
+
+document.getElementById('refreshBtn').addEventListener('click', () => { loadAll(true); showToast('Refreshed from sheet'); });
+document.getElementById('refreshRow').addEventListener('click', () => { loadAll(true); showToast('Refreshed from sheet'); });
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ---------- install instructions (platform aware) ---------- */
+const ua = navigator.userAgent;
+const isIOS = /iPad|iPhone|iPod/.test(ua);
+const isAndroid = /Android/.test(ua);
+const stepsEl = document.getElementById('install-steps-list');
+if(isIOS){
+  stepsEl.innerHTML = `
+    <li>Open this page in <b>Safari</b> (not Chrome)</li>
+    <li>Tap the <b>Share</b> icon at the bottom of the screen</li>
+    <li>Scroll down and tap <b>Add to Home Screen</b></li>
+    <li>Tap <b>Add</b> in the top right</li>`;
+} else if(isAndroid){
+  stepsEl.innerHTML = `
+    <li>Open this page in <b>Chrome</b></li>
+    <li>Tap the <b>⋮</b> menu in the top right</li>
+    <li>Tap <b>Install app</b> (or <b>Add to Home screen</b>)</li>
+    <li>Confirm by tapping <b>Install</b></li>
+    <li>Or just tap the button below if it appears</li>`;
+} else {
+  stepsEl.innerHTML = `
+    <li>Open this page in <b>Chrome</b> or <b>Edge</b></li>
+    <li>Click the <b>install icon</b> in the address bar (or the button below)</li>
+    <li>Click <b>Install</b> in the prompt</li>`;
+}
+
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'block';
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBtn').style.display = 'none';
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+loadAll(false);
+</script>
+</body>
+</html>
