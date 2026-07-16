@@ -52,8 +52,6 @@
     gap:10px;
   }
   .topbar .mark{width:26px;height:26px;flex-shrink:0;}
-  .topbar .mark circle{fill:none;stroke:var(--orange);stroke-width:2.4;}
-  .topbar .mark rect{fill:none;stroke:#fff;stroke-width:2.4;}
   .topbar .word{font-family:'Fraunces',serif;font-weight:700;font-size:1.15rem;}
   .topbar .word b{color:var(--orange);font-weight:700;}
   .topbar .back{
@@ -116,6 +114,8 @@
     font-family:'Fraunces',serif;font-weight:700;font-size:0.72rem;line-height:1.25;
     padding:6px;
   }
+  .event-badge.has-logo{background:#fff;padding:4px;}
+  .event-badge.has-logo img{width:100%;height:100%;object-fit:contain;border-radius:6px;}
   .event-info{flex:1;min-width:0;}
   .event-info h3{margin:0 0 5px;font-size:0.98rem;font-weight:700;}
   .event-info .loc, .event-info .date{
@@ -156,6 +156,9 @@
   .detail-hero{
     background:var(--navy);color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:18px;
   }
+  .detail-hero .hero-logo{
+    width:56px;height:56px;border-radius:12px;background:#fff;object-fit:contain;padding:5px;margin-bottom:12px;
+  }
   .detail-hero .badge-tag{
     display:inline-block;background:rgba(232,121,43,0.18);color:var(--orange);
     font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:999px;margin-bottom:10px;
@@ -180,9 +183,16 @@
   }
   .sched-card{
     flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    position:relative;
   }
+  .sched-card.has-file{padding-right:52px;}
   .sched-card .s-title{font-weight:600;font-size:0.92rem;}
   .sched-card .s-mod{margin-top:6px;font-size:0.72rem;color:#B08A4F;font-weight:600;}
+  .sched-card .s-file{
+    position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;
+    background:#FBEDE1;color:var(--orange-deep);display:flex;align-items:center;justify-content:center;
+  }
+  .sched-card .s-file svg{width:15px;height:15px;}
 
   .file-card{
     display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
@@ -263,7 +273,7 @@
   <button class="back" id="backBtn" style="display:none;" aria-label="Back">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
   </button>
-  <svg class="mark" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26"/><circle cx="30" cy="30" r="18"/><rect x="19" y="19" width="22" height="22"/></svg>
+  <img class="mark" src="icons/logo-topbar.png" alt="Kariwala" style="width:26px;height:26px;border-radius:6px;object-fit:cover;flex-shrink:0;">
   <span class="word">Kariwala <b>Connect</b></span>
   <button class="refresh" id="refreshBtn" aria-label="Refresh data">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
@@ -392,9 +402,26 @@ const CONFIG = {
     events: "Events",
     schedule: "Schedule",
     attachments: "Attachments"
-  }
+  },
+  // Optional override: paste a Drive share link here if you ever want to
+  // swap the app's logo without asking me. Leave blank to keep the
+  // Kariwala logo that's already built in.
+  APP_LOGO_URL: ""
 };
 /* ========================================================================= */
+
+// Turns a normal Google Drive "share" link (of any common shape) into a
+// URL that can be used directly as an <img src>. Anyone can paste a
+// regular Drive share link into the Sheet - no special format needed.
+function driveImageUrl(url){
+  if(!url) return "";
+  const patterns = [/\/file\/d\/([^/]+)/, /[?&]id=([^&]+)/, /\/d\/([^/]+)/];
+  for(const p of patterns){
+    const m = url.match(p);
+    if(m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+  }
+  return url; // already a direct image URL
+}
 
 function sheetUrl(tabName){
   return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&t=${Date.now()}`;
@@ -461,11 +488,18 @@ async function loadAll(spin){
 
 function eventBadge(ev){ return (ev.Badge || ev.Name || '').toUpperCase(); }
 
+function badgeHtml(ev){
+  if(ev.LogoURL){
+    return `<div class="event-badge has-logo"><img src="${driveImageUrl(ev.LogoURL)}" alt="${ev.Name}"></div>`;
+  }
+  return `<div class="event-badge">${eventBadge(ev)}</div>`;
+}
+
 function eventCardHtml(ev){
   const status = computeStatus(ev);
   return `
     <div class="event-card" data-event="${ev.EventID}">
-      <div class="event-badge">${eventBadge(ev)}</div>
+      ${badgeHtml(ev)}
       <div class="event-info">
         <h3>${ev.Name}</h3>
         ${ev.Location ? `<div class="loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7.5 8-13a8 8 0 1 0-16 0c0 5.5 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg>${ev.Location}</div>` : ''}
@@ -541,6 +575,7 @@ function openDetail(eventId){
   if(!ev) return;
   const status = computeStatus(ev);
   document.getElementById('detail-hero').innerHTML = `
+    ${ev.LogoURL ? `<img class="hero-logo" src="${driveImageUrl(ev.LogoURL)}" alt="${ev.Name}">` : ''}
     <div class="badge-tag">${status.toUpperCase()}</div>
     <h1>${ev.Name}</h1>
     ${ev.Location ? `<div class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7.5 8-13a8 8 0 1 0-16 0c0 5.5 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg>${ev.Location}</div>` : ''}
@@ -556,9 +591,13 @@ function openDetail(eventId){
     ${rows.filter(r => r.Day === day).map(r => `
       <div class="sched-row">
         <div class="sched-time">${r.Time || ''}</div>
-        <div class="sched-card">
+        <div class="sched-card${r.FileURL ? ' has-file' : ''}">
           <div class="s-title">${r.Session || ''}</div>
           ${r.Speaker ? `<div class="s-mod">${r.Speaker}</div>` : ''}
+          ${r.FileURL ? `
+            <a class="s-file" href="${r.FileURL}" target="_blank" rel="noopener" title="${r.FileTitle || 'Open attachment'}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+            </a>` : ''}
         </div>
       </div>`).join('')}
   `).join('') : emptyHtml('No schedule added yet.');
@@ -656,6 +695,10 @@ document.getElementById('installBtn').addEventListener('click', async () => {
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+if(CONFIG.APP_LOGO_URL){
+  document.querySelectorAll('.topbar .mark').forEach(el => { el.src = driveImageUrl(CONFIG.APP_LOGO_URL); });
 }
 
 loadAll(false);

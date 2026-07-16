@@ -14,26 +14,42 @@ icons/          app icons
 
 ---
 
-## Step 1 — Load the ready-made sheet structure
+## Step 1 — Load the sheet structure
 
-A quick honest note: I don't have a way to type directly into your Google
-Sheet from here, so instead I've built the three tabs (with headers and
-Aikyam 5's real schedule already filled in) as a file — **`kariwala-connect-seed.xlsx`**
-in this folder. Bringing it into your sheet is three clicks, no typing:
+I've updated `kariwala-connect-seed.xlsx` with two new columns the app now
+uses (`LogoURL` on `Events`, and `FileURL` / `FileTitle` on `Schedule`).
 
-1. Open your sheet: **Kariwala connect** (the one you shared with me)
-2. Go to **File → Import**
-3. Click **Upload**, choose `kariwala-connect-seed.xlsx`
-4. When asked "Import location," choose **Replace spreadsheet** (your sheet is currently empty, so this is safe) → **Import data**
+- **If you haven't imported the sheet yet:** open your **Kariwala connect**
+  sheet → **File → Import** → **Upload** → choose `kariwala-connect-seed.xlsx`
+  → **Replace spreadsheet** → **Import data**.
+- **If you already imported it last time:** just add the new columns
+  yourself — in `Events`, add a column called `LogoURL` after the last one;
+  in `Schedule`, add `FileURL` and `FileTitle`. Existing rows are untouched,
+  the app simply ignores blank cells in those columns.
 
-You'll now have three tabs — `Events`, `Schedule`, `Attachments` — with Aikyam 5
-already in there as a working example. The app is already pointed at this exact
-sheet, so as soon as you do this import, the app will show real data.
+### What each tab does now
+
+**`Events`** — `EventID, Name, Badge, Location, StartDate, EndDate, Description, LogoURL`
+- `LogoURL` (new) — the event's own logo. Paste a normal Google Drive share
+  link (upload the logo to Drive → right-click → **Share** → **"Anyone with
+  the link – Viewer"** → copy link → paste here). Leave blank and the app
+  just shows the badge text instead — nothing breaks. Aikyam 5's row is
+  already filled in with its real logo, which now ships inside the app
+  itself (`icons/aikyam-logo.png`) — no Drive link needed for that one.
+
+**`Schedule`** — `EventID, Day, Time, Session, Speaker, FileURL, FileTitle`
+- `FileURL` / `FileTitle` (new) — attach a file to one specific agenda item.
+  Fill these in and a small file icon appears in the corner of that session's
+  card, opening the file directly — no need to visit a separate files list.
+  Nothing shows if the row is left blank. Same Drive-sharing steps as above.
+
+**`Attachments`** — unchanged, still there for general event-wide files that
+aren't tied to one specific session (e.g. the full printed agenda as a PDF).
 
 **Adding a new event later** — no typing formulas needed, just fill in a new row:
 - A new row in `Events` (give it a short `EventID` like `diwali2026`, no spaces)
 - Its agenda rows in `Schedule`, using that same `EventID`
-- Its files in `Attachments`, using that same `EventID` — upload the file to Drive first, right-click → **Share** → **"Anyone with the link – Viewer"**, then paste that link into `FileURL`
+- Its files in `Attachments`, using that same `EventID`
 
 Always write dates as `YYYY-MM-DD` (e.g. `2026-08-15`) — that's what decides
 whether an event shows as Upcoming or Past automatically.
@@ -74,6 +90,7 @@ Once installed, it opens full-screen, with no browser bar, just like a native ap
 ---
 
 ## Notes
+- The app's own logo (top bar and home-screen icon) is now the real Kariwala logo — already baked into `icons/`, nothing to do. If it ever changes, send me the new file and I'll regenerate the set.
 - The app never modifies the Sheet — it only reads it, so it's safe to hand the sheet-editing job to anyone without worrying about them breaking the app.
 - If a tab name in your Sheet doesn't match `Events` / `Schedule` / `Attachments` exactly, update the `TABS` names in the same `CONFIG` block in `index.html`.
 - Want a different accent color, or to add an "Announcements" tab like FTS Connect has? Tell me and I'll hand you an updated file.
