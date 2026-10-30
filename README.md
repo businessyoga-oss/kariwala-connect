@@ -1,96 +1,97 @@
-# Kariwala Connect
+# Kariwala Connect — v2
 
-One app for every Kariwala Industries event — schedules and files, pulled live
-from a Google Sheet. No server, no database. You edit the sheet, the app
-picks it up.
+Splash screen, Google sign-in (only @kariwala.com), the green-and-yellow
+redesign, per-person app access, access requests, birthdays (with the daily
+team email), and an Admin panel to manage all of it from inside the app.
 
 ## What's in this folder
+
 ```
-index.html      the whole app
-manifest.json   makes it installable on phones
-sw.js           lets it open even with a poor connection
-icons/          app icons
+index.html                      the app
+sw.js                           keeps it fast + updates showing on next open
+manifest.json                   makes it installable on phones
+icons/                          logos and app icons (9 files)
+kariwala-connect-api.gs.txt     the Apps Script code (goes into Google, not GitHub)
 ```
 
 ---
 
-## Step 1 — Load the sheet structure
+## Step 1 — Update the Apps Script (5 minutes)
 
-I've updated `kariwala-connect-seed.xlsx` with two new columns the app now
-uses (`LogoURL` on `Events`, and `FileURL` / `FileTitle` on `Schedule`).
+1. Open your Kariwala connect Sheet → **Extensions → Apps Script**
+2. Click inside the code, press **Ctrl+A**, then **Delete** — the editor is now empty
+3. Open `kariwala-connect-api.gs.txt`, copy everything, paste it in. Press **Ctrl+S**
+   (Nothing to fill in — your Sheet ID and Client ID are already inside.)
+4. In the toolbar, open the function dropdown (next to "Debug"), choose **setup**, click **Run**
+   - Google will ask for permission → choose your account → **Advanced** → **Go to project** → **Allow**
+   - This creates any missing tabs (Requests, Users…) in your Sheet automatically
+5. Click **Deploy → Manage deployments** → click the **pencil icon** on your existing deployment
+6. Under **Version**, choose **New version** → click **Deploy**
 
-- **If you haven't imported the sheet yet:** open your **Kariwala connect**
-  sheet → **File → Import** → **Upload** → choose `kariwala-connect-seed.xlsx`
-  → **Replace spreadsheet** → **Import data**.
-- **If you already imported it last time:** just add the new columns
-  yourself — in `Events`, add a column called `LogoURL` after the last one;
-  in `Schedule`, add `FileURL` and `FileTitle`. Existing rows are untouched,
-  the app simply ignores blank cells in those columns.
+Using "Manage deployments" (not "New deployment") keeps the same web address,
+so the app keeps working without any change.
 
-### What each tab does now
+## Step 1b — Move birthdays over (one time, 3 clicks)
 
-**`Events`** — `EventID, Name, Badge, Location, StartDate, EndDate, Description, LogoURL`
-- `LogoURL` (new) — the event's own logo. Paste a normal Google Drive share
-  link (upload the logo to Drive → right-click → **Share** → **"Anyone with
-  the link – Viewer"** → copy link → paste here). Leave blank and the app
-  just shows the badge text instead — nothing breaks. Aikyam 5's row is
-  already filled in with its real logo, which now ships inside the app
-  itself (`icons/aikyam-logo.png`) — no Drive link needed for that one.
+Still in the Apps Script editor, after Step 1 above:
 
-**`Schedule`** — `EventID, Day, Time, Session, Speaker, FileURL, FileTitle`
-- `FileURL` / `FileTitle` (new) — attach a file to one specific agenda item.
-  Fill these in and a small file icon appears in the corner of that session's
-  card, opening the file directly — no need to visit a separate files list.
-  Nothing shows if the row is left blank. Same Drive-sharing steps as above.
+1. Function dropdown → **importBirthdays** → **Run**
+   Copies every name and birthday from the old "D.O.B List" sheet into a new
+   **Birthdays** tab in this sheet. Check **Execution log** — it says how many
+   were imported, and names any row it couldn't read.
+   (If it says it can't open the old sheet: share "D.O.B List" with
+   content@kariwala.com as Viewer, then run it again.)
+2. Function dropdown → **previewBirthdayEmail** → **Run**
+   Sends today's birthday email only to content@kariwala.com, as a test.
+   (If nobody has a birthday today it just says so — that's fine.)
+3. Function dropdown → **installBirthdayTrigger** → **Run**
+   From now on the email goes to kariwala-team@kariwala.com every morning at 8 am.
 
-**`Attachments`** — unchanged, still there for general event-wide files that
-aren't tied to one specific session (e.g. the full printed agenda as a PDF).
+**Important — turn off the old one, or everyone gets two emails:**
+open the old "D.O.B List" sheet → **Extensions → Apps Script** → click the
+**clock icon (Triggers)** on the left → delete the trigger for
+`dailyBirthdayEmail`. After that the old sheet isn't needed — add and edit
+birthdays from the app (**Admin → Content → Birthdays**).
 
-**Adding a new event later** — no typing formulas needed, just fill in a new row:
-- A new row in `Events` (give it a short `EventID` like `diwali2026`, no spaces)
-- Its agenda rows in `Schedule`, using that same `EventID`
-- Its files in `Attachments`, using that same `EventID`
+**Only if the website shows a birthday banner:** that banner came from the old
+script's link. Replace it with your Kariwala Connect script link with
+`?view=birthday-banner` added at the end. It looks exactly the same.
 
-Always write dates as `YYYY-MM-DD` (e.g. `2026-08-15`) — that's what decides
-whether an event shows as Upcoming or Past automatically.
+## Step 2 — Upload to GitHub
 
----
+1. In your `kariwala-connect` repo: **Add file → Upload files**
+2. Drag in `index.html`, `sw.js`, `manifest.json` → **Commit changes**
+3. Click into the **icons** folder → **Add file → Upload files**
+4. Select **all 9 files** from the `icons` folder → **Commit changes**
 
-## Step 2 — Put it on GitHub and deploy on Vercel
+Vercel redeploys on its own within a minute or two.
 
-Same flow as before:
+## Step 3 — First time setup in the app
 
-1. Create a new GitHub repo, e.g. `kariwala-connect`
-2. Upload **all the files in this folder**, keeping the `icons/` folder intact (drag the whole folder in, or use "Add file → Upload files" and select everything at once)
-3. On Vercel: **Add New → Project → Import** the `kariwala-connect` repo
-4. Leave settings as default (static site, no build command) → **Deploy**
-
-You'll get a live link in under a minute.
-
----
-
-## Step 3 — How people install it on their phone
-
-This is a real installable app (a "PWA") — no app store needed. There's also
-an **Install** section inside the app itself (under **More**) with these same
-steps shown automatically based on the person's phone.
-
-**Android (Chrome):**
-1. Open the Vercel link in Chrome
-2. Tap the **⋮** menu → **Install app** (or **Add to Home screen**)
-3. Confirm — the icon appears on their home screen like any other app
-
-**iPhone (Safari):**
-1. Open the link in **Safari** — it must be Safari, not Chrome, for this to work on iPhone
-2. Tap the **Share** icon at the bottom
-3. Scroll down, tap **Add to Home Screen** → **Add**
-
-Once installed, it opens full-screen, with no browser bar, just like a native app.
+1. Open the app, sign in with **content@kariwala.com** (always an admin)
+2. Go to **Admin → Apps**. Tap each app and choose **Who can use it**:
+   - **Everyone** — every employee can open it (e.g. Kariwala Website)
+   - **Only people I approve** — everyone sees it greyed out and can request it
+   - **Hidden** — only approved people can even see it (for payroll/finance)
+3. Done. From now on:
+   - Requests show up under **Admin → Requests** with Approve / Decline
+   - **Admin → People** lists everyone who has signed in — tap a person to switch apps on/off
+   - **+ Email** lets you set up someone's apps before they've ever signed in
+   - **Admin → Content** edits Events, Programme, Files, Notices, Birthdays and Admins
+   - In **People**, tap a person to set their department too
 
 ---
 
-## Notes
-- The app's own logo (top bar and home-screen icon) is now the real Kariwala logo — already baked into `icons/`, nothing to do. If it ever changes, send me the new file and I'll regenerate the set.
-- The app never modifies the Sheet — it only reads it, so it's safe to hand the sheet-editing job to anyone without worrying about them breaking the app.
-- If a tab name in your Sheet doesn't match `Events` / `Schedule` / `Attachments` exactly, update the `TABS` names in the same `CONFIG` block in `index.html`.
-- Want a different accent color, or to add an "Announcements" tab like FTS Connect has? Tell me and I'll hand you an updated file.
+## Good to know
+
+- **The Sheet can now stay private.** The app never reads it directly any
+  more — everything goes through the Apps Script, which checks the sign-in
+  first. The "Kariwala settings prevent sharing" message no longer matters.
+- **Dates are safe now.** Events added from the app use a date picker and are
+  saved as plain text, so the date-format problem from before can't happen.
+- **Connect controls the door, not the room.** Someone who already knows an
+  app's direct link (e.g. suraksha-lemon.vercel.app) can still type it into a
+  browser. For apps with sensitive data, that app should also have its own
+  login — the way Suraksha already does.
+- **Sign-in lasts about an hour** (a Google rule). After that, the app signs
+  people back in automatically with one tap — no password.

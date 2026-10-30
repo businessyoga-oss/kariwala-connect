@@ -2,1188 +2,1360 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kariwala Connect</title>
-<meta name="description" content="Events, schedules and files for every Kariwala Industries event.">
-<meta name="theme-color" content="#10233F">
+<meta name="description" content="Kariwala Connect — every Kariwala Industries app, event and notice in one place.">
+<meta name="theme-color" content="#1B6257">
+<meta name="color-scheme" content="light">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Kariwala">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Serif+Devanagari:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-  :root{
-    --navy:#10233F;
-    --navy-soft:#1B3A63;
-    --orange:#E8792B;
-    --orange-deep:#C4611D;
-    --bg:#F3F5F8;
-    --card:#FFFFFF;
-    --ink:#182432;
-    --ink-soft:#66748A;
-    --line:#E3E8EF;
-    --good:#2E9E6D;
-    --radius:16px;
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{min-height:100%;}
-  html{overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:'Work Sans',sans-serif;
-    padding-bottom:78px;
-  }
-  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
-  a{color:inherit;text-decoration:none;}
-  button{font-family:inherit;}
+/* ============================== design tokens ============================== */
+:root{
+  --g9:#0A3029; --g8:#0F4237; --g7:#1B6257; --g6:#22735F; --g5:#2E8A72; --g3:#93C6B5; --g2:#CFE5DC; --g1:#E7F2EC; --g0:#F2F7F4;
+  --y7:#8A5F00; --y6:#C98A06; --y5:#F0B323; --y4:#F6C954; --y2:#FBE6A9; --y1:#FEF5DA;
+  --ink:#14211D; --ink2:#4B5D56; --ink3:#7E8D87; --line:#E0E7E3; --line2:#EDF2EF;
+  --bg:#F5F7F3; --card:#FFFFFF; --danger:#B4432F; --danger-bg:#FBEDE9;
+  --r-xl:24px; --r-lg:18px; --r:14px; --r-sm:10px;
+  --sh1:0 1px 2px rgba(10,48,41,.06);
+  --sh2:0 1px 2px rgba(10,48,41,.05), 0 10px 28px -14px rgba(10,48,41,.28);
+  --fd:'Fraunces', Georgia, serif;
+  --fb:'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --nav-h: 68px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--fb);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+[hidden]{display:none !important}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+:focus-visible{outline:3px solid var(--y5);outline-offset:2px;border-radius:8px}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.01em}
+.muted{color:var(--ink2)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 
-  /* ---------- Top bar ---------- */
-  .topbar{
-    position:sticky; top:0; z-index:30;
-    background:var(--navy);
-    color:#fff;
-    padding:14px 18px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .topbar .mark{width:26px;height:26px;flex-shrink:0;}
-  .topbar .word{font-family:'Fraunces',serif;font-weight:700;font-size:1.15rem;}
-  .topbar .word b{color:var(--orange);font-weight:700;}
-  .topbar .back{
-    background:none;border:none;color:#fff;padding:2px 6px 2px 0;
-    display:flex;align-items:center;cursor:pointer;
-  }
-  .topbar .back svg{width:20px;height:20px;}
-  .topbar .refresh{
-    margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.8);cursor:pointer;
-    display:flex;align-items:center;padding:4px;
-  }
-  .topbar .refresh svg{width:18px;height:18px;}
-  .topbar .refresh.spinning svg{animation:spin 0.8s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
+/* ================================= splash ================================= */
+#splash{position:fixed;inset:0;z-index:100;background:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .45s ease, visibility .45s}
+#splash.out{opacity:0;visibility:hidden}
+.splash-inner{display:flex;flex-direction:column;align-items:center;animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.splash-logo{width:min(62vw,260px);height:auto}
+.splash-tag{margin-top:14px;font-family:var(--fd);font-style:italic;font-weight:500;font-size:1.15rem;color:var(--g7);letter-spacing:.01em}
+.splash-tag::before,.splash-tag::after{content:"";display:inline-block;width:18px;height:1.5px;background:var(--y5);vertical-align:middle;margin:0 10px}
+.splash-bar{margin-top:34px;width:120px;height:3px;border-radius:3px;background:var(--g1);overflow:hidden;position:relative}
+.splash-bar span{position:absolute;inset:0 auto 0 0;width:40%;border-radius:3px;background:var(--y5);animation:sweep 1.1s ease-in-out infinite}
+.splash-foot{position:absolute;bottom:calc(28px + var(--safe-b));font-size:.74rem;color:var(--ink3);letter-spacing:.04em}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
 
-  main{max-width:520px;margin:0 auto;padding:18px 16px 8px;}
-  .view{display:none;}
-  .view.active{display:block;}
+/* ================================== login ================================= */
+.login{min-height:100vh;display:grid;grid-template-rows:auto 1fr;background:var(--bg)}
+.login-hero{position:relative;overflow:hidden;color:#fff;padding:calc(36px + env(safe-area-inset-top,0px)) 24px 84px;
+  background:radial-gradient(120% 90% at 100% 0%, var(--g6) 0%, transparent 60%), linear-gradient(160deg, var(--g7) 0%, var(--g9) 100%)}
+.login-hero::after{content:"";position:absolute;right:-60px;bottom:-70px;width:260px;height:290px;background:url(icons/logo-mark-white.png) center/contain no-repeat;opacity:.07}
+.login-logo{width:168px;height:auto;display:block}
+.login-hero h1{font-family:var(--fd);font-weight:600;font-size:clamp(2rem,6.5vw,2.9rem);line-height:1.1;margin:36px 0 0}
+.login-hero h1 em{font-style:normal;color:var(--y4)}
+.login-rule{width:44px;height:4px;border-radius:4px;background:var(--y5);margin:22px 0 20px}
+.gita{margin:0;max-width:40ch}
+.gita .sa{font-family:'Noto Serif Devanagari',var(--fd);font-weight:600;font-size:clamp(1.02rem,4.2vw,1.25rem);line-height:1.65;color:#fff}
+.gita .en{margin-top:6px;font-family:var(--fd);font-style:italic;font-size:.98rem;color:rgba(255,255,255,.85)}
+.gita .src{margin-top:8px;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--y4)}
+.login-card{position:relative;margin:-52px 16px 24px;background:var(--card);border-radius:var(--r-xl);box-shadow:var(--sh2);padding:28px 22px 22px;align-self:start;max-width:440px;width:calc(100% - 32px);justify-self:center}
+.login-card h2{font-family:var(--fd);font-size:1.45rem;font-weight:600}
+.login-card .lead{margin:6px 0 22px;color:var(--ink2);font-size:.92rem}
+.gbtn-wrap{min-height:44px;display:flex;justify-content:center}
+.login-msg{margin-top:16px;font-size:.86rem;border-radius:var(--r-sm);padding:0}
+.login-msg.err{background:var(--danger-bg);color:var(--danger);padding:11px 14px}
+.login-msg.info{background:var(--g1);color:var(--g8);padding:11px 14px}
+.login-fine{margin:22px 0 0;padding-top:16px;border-top:1px solid var(--line2);font-size:.76rem;color:var(--ink3);display:flex;gap:8px;align-items:flex-start}
+.login-fine svg{flex-shrink:0;width:15px;height:15px;margin-top:1px;stroke:var(--g6)}
+@media (min-width:900px){
+  .login{grid-template-columns:1.1fr 1fr;grid-template-rows:1fr}
+  .login-hero{padding:56px 56px;display:flex;flex-direction:column;justify-content:center}
+  .login-hero::after{width:420px;height:470px;right:-90px;bottom:-110px}
+  .login-card{margin:auto;align-self:center;padding:40px 36px 30px}
+}
 
-  /* ---------- Home hero ---------- */
-  .hero-card{
-    background:linear-gradient(150deg, var(--navy) 0%, #0A1526 100%);
-    color:#fff;
-    border-radius:var(--radius);
-    padding:22px 20px;
-    margin-bottom:22px;
-  }
-  .hero-card .eyebrow{color:var(--orange);font-weight:600;font-size:0.85rem;margin-bottom:6px;}
-  .hero-card h1{font-family:'Fraunces',serif;font-size:1.5rem;margin:0 0 6px;font-weight:700;}
-  .hero-card p{margin:0;color:rgba(255,255,255,0.72);font-size:0.88rem;}
+/* =============================== app shell ================================ */
+.top{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.88);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line2);padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;display:flex;align-items:center;gap:10px}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:none;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+.icon-btn:hover{background:var(--g0)}
+.icon-btn svg{width:20px;height:20px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.brand img{width:26px;height:auto}
+.brand span{font-family:var(--fd);font-weight:600;font-size:1.12rem;white-space:nowrap}
+.brand span em{font-style:normal;color:var(--g6)}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:4px}
+.spin svg{animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.avatar{width:36px;height:36px;border-radius:50%;border:2px solid var(--g2);background:var(--g7);color:#fff;font-weight:700;font-size:.85rem;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
+.avatar img{width:100%;height:100%;object-fit:cover}
+main{max-width:760px;margin:0 auto;padding:18px 16px calc(var(--nav-h) + 28px + var(--safe-b))}
 
-  .section-title{
-    display:flex;align-items:baseline;justify-content:space-between;
-    margin:4px 2px 12px;
-  }
-  .section-title h2{font-size:1.02rem;margin:0;font-weight:700;}
-  .section-title a{color:var(--orange-deep);font-size:0.82rem;font-weight:600;}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + var(--safe-b))}
+.tabbar-in{display:flex;width:100%;max-width:520px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;color:var(--ink3);font-size:.68rem;font-weight:600;position:relative;border:none;background:none}
+.tab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--g7)}
+.tab.on::before{content:"";position:absolute;top:0;width:22px;height:3px;border-radius:0 0 3px 3px;background:var(--y5)}
+.tab .dot{position:absolute;top:2px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--y5);color:var(--g9);font-size:.62rem;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+@media (min-width:900px){
+  .tabbar{top:0;bottom:0;right:auto;width:92px;flex-direction:column;justify-content:flex-start;border-top:none;border-right:1px solid var(--line);padding:84px 8px 16px}
+  .tabbar-in{flex-direction:column;gap:6px}
+  .tab{flex:none;padding:12px 2px}
+  .tab.on{background:var(--g1)}
+  .tab.on::before{top:12px;left:0;width:3px;height:24px;border-radius:0 3px 3px 0}
+  .top{padding-left:108px}
+  main{padding-left:108px;padding-right:16px;max-width:none}
+  main > section{max-width:860px;margin:0 auto}
+  main{padding-bottom:40px}
+}
 
-  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px;}
-  .tile{
-    background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:16px 8px 12px;text-align:center;cursor:pointer;
-  }
-  .tile .ic{
-    width:42px;height:42px;border-radius:12px;background:var(--navy);
-    display:flex;align-items:center;justify-content:center;margin:0 auto 8px;
-  }
-  .tile .ic svg{width:20px;height:20px;stroke:#fff;fill:none;}
-  .tile span{font-size:0.74rem;font-weight:600;color:var(--ink);}
+/* ============================== common parts ============================== */
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;margin:28px 2px 12px}
+.sec-head h2{font-size:1.02rem}
+.sec-head a,.link{color:var(--g6);font-weight:700;font-size:.84rem;background:none;border:none;padding:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh1)}
+.search{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:0 14px;height:46px;margin-bottom:14px}
+.search svg{width:17px;height:17px;stroke:var(--ink3);flex-shrink:0}
+.search input{border:none;outline:none;background:none;flex:1;min-width:0;font-size:.92rem}
+.search:focus-within{border-color:var(--g5);box-shadow:0 0 0 3px var(--g1)}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:14px;gap:2px;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+#ctTabs{flex-wrap:wrap;border-radius:18px}
+#ctTabs button{flex:1 1 30%}
+.seg button{flex:1;white-space:nowrap;border:none;background:none;border-radius:999px;padding:9px 14px;font-size:.83rem;font-weight:600;color:var(--ink2);position:relative}
+.seg button.on{background:var(--g7);color:#fff}
+.seg .n{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:9px;background:var(--y5);color:var(--g9);font-size:.68rem;line-height:18px;font-weight:800}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 18px;border-radius:12px;border:1px solid transparent;font-weight:700;font-size:.88rem;transition:background .15s, transform .1s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn svg{width:17px;height:17px}
+.btn-primary{background:var(--g7);color:#fff}
+.btn-primary:hover{background:var(--g8)}
+.btn-accent{background:var(--y5);color:var(--g9)}
+.btn-accent:hover{background:var(--y4)}
+.btn-ghost{background:var(--card);border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{background:var(--g0)}
+.btn-danger{background:var(--card);border-color:#EBCFC8;color:var(--danger)}
+.btn-sm{height:36px;padding:0 13px;font-size:.8rem;border-radius:10px}
+.btn-block{width:100%}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:var(--line2);color:var(--ink2);white-space:nowrap}
+.chip.green{background:var(--g1);color:var(--g7)}
+.chip.yellow{background:var(--y1);color:var(--y7)}
+.chip.grey{background:#EEF0EF;color:var(--ink2)}
+.chip.red{background:var(--danger-bg);color:var(--danger)}
+.empty{text-align:center;color:var(--ink3);font-size:.86rem;padding:30px 16px}
+.empty svg{width:34px;height:34px;stroke:var(--g3);margin-bottom:8px}
+.skel{background:linear-gradient(90deg,var(--line2),#fff,var(--line2));background-size:200% 100%;animation:sh 1.2s infinite;border-radius:var(--r)}
+@keyframes sh{to{background-position:-200% 0}}
 
-  /* ---------- sign-in ---------- */
-  .signin-row{margin-bottom:18px;}
-  .signin-row.signed-in{
-    display:flex;align-items:center;justify-content:space-between;
-    background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;
-  }
-  .whoami{display:flex;align-items:center;gap:10px;}
-  .whoami img{width:34px;height:34px;border-radius:50%;background:var(--line);}
-  .whoami b{display:block;font-size:0.86rem;}
-  .whoami small{color:var(--ink-soft);font-size:0.74rem;}
-  .signout-btn{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:0.72rem;color:var(--ink-soft);cursor:pointer;}
+/* ================================== home =================================== */
+.greet{position:relative;overflow:hidden;border-radius:var(--r-xl);padding:22px 22px 20px;color:#fff;background:radial-gradient(90% 120% at 100% 0%, var(--g6) 0%, transparent 55%), linear-gradient(150deg,var(--g7),var(--g9))}
+.greet::after{content:"";position:absolute;right:-26px;top:-18px;width:150px;height:170px;background:url(icons/logo-mark-white.png) center/contain no-repeat;opacity:.08}
+.greet .eyebrow{font-size:.78rem;color:var(--y4);font-weight:700;letter-spacing:.02em}
+.greet h1{font-family:var(--fd);font-weight:600;font-size:1.65rem;margin:4px 0 14px;line-height:1.15}
+.greet-meta{display:flex;flex-wrap:wrap;gap:8px}
+.greet-meta span{font-size:.75rem;font-weight:600;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:5px 11px;border-radius:999px}
+.greet-meta b{color:var(--y4)}
+.alert{display:flex;align-items:center;gap:12px;margin-top:14px;padding:13px 16px;border-radius:var(--r);background:var(--y1);border:1px solid var(--y2);color:var(--y7);font-size:.86rem;font-weight:600}
+.alert svg{width:20px;height:20px;flex-shrink:0;stroke:var(--y6)}
+.alert span:not(.go){flex:1}
+.alert .go{margin-left:auto;font-weight:800;white-space:nowrap}
 
-  /* ---------- app launcher grid ---------- */
-  .app-grid{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;margin-bottom:26px;
-  }
-  .app-tile{
-    display:flex;flex-direction:column;align-items:center;gap:6px;
-    background:none;border:none;cursor:pointer;padding:0;font-family:inherit;position:relative;
-  }
-  .app-tile .at-icon{
-    width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;
-    color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:1.15rem;
-    box-shadow:0 4px 10px -5px rgba(16,35,63,0.45);position:relative;overflow:hidden;
-  }
-  .app-tile .at-icon img{width:100%;height:100%;object-fit:cover;}
-  .app-tile span{font-size:0.7rem;font-weight:600;color:var(--ink);text-align:center;line-height:1.2;max-width:74px;}
-  .app-tile .at-badge{
-    position:absolute;top:-4px;right:12px;min-width:17px;height:17px;border-radius:9px;
-    background:var(--orange-deep);color:#fff;font-size:0.62rem;font-weight:700;
-    display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg);
-  }
-  .app-tile.locked .at-icon{background:#EAECEF !important;box-shadow:none;color:#B0B6C0;}
-  .app-tile.locked span{color:#A6ACB8;}
-  .app-tile .at-lock{
-    position:absolute;bottom:-2px;right:12px;width:17px;height:17px;border-radius:50%;
-    background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
-  }
-  .app-tile .at-lock svg{width:8px;height:8px;stroke:var(--ink-soft);}
+.app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 6px}
+@media (min-width:560px){.app-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}}
+.app{display:flex;flex-direction:column;align-items:center;gap:7px;border:none;background:none;padding:4px 0;position:relative;text-align:center;border-radius:14px}
+.app-ic{width:58px;height:58px;border-radius:17px;display:flex;align-items:center;justify-content:center;position:relative;background:var(--c,var(--g7));color:var(--fg,#fff);font-family:var(--fd);font-weight:700;font-size:1.4rem;box-shadow:0 6px 14px -8px rgba(10,48,41,.55);transition:transform .15s}
+.app:hover .app-ic{transform:translateY(-2px)}
+.app:active .app-ic{transform:scale(.95)}
+.app-ic img{width:100%;height:100%;object-fit:cover;border-radius:17px}
+.app-name{font-size:.72rem;font-weight:600;line-height:1.25;max-width:84px;color:var(--ink)}
+.app-state{font-size:.62rem;font-weight:700;margin-top:-4px}
+.app .badge{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--y5);color:var(--g9);font:800 .66rem var(--fb);display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.app .lock{position:absolute;bottom:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.app .lock svg{width:11px;height:11px;stroke:var(--ink2)}
+.app[data-state=locked] .app-ic,.app[data-state=soon] .app-ic{background:#E9EDEB;color:#A7B1AD;box-shadow:none}
+.app[data-state=locked] .app-ic img,.app[data-state=soon] .app-ic img{filter:grayscale(1);opacity:.45}
+.app[data-state=locked] .app-name,.app[data-state=soon] .app-name{color:var(--ink3)}
+.app[data-state=pending] .app-ic{background:var(--y1);color:var(--y6);box-shadow:none;border:1.5px dashed var(--y4)}
+.app[data-state=pending] .app-ic img{filter:grayscale(.6);opacity:.6}
+.app[data-state=pending] .lock{background:var(--y5);border-color:var(--y5)}
+.app[data-state=pending] .lock svg{stroke:var(--g9)}
+.grid-note{margin:16px 2px 0;font-size:.76rem;color:var(--ink3);display:flex;gap:14px;flex-wrap:wrap}
+.grid-note i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 
-  /* ---------- notices ---------- */
-  .notice-card{
-    background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;
-  }
-  .notice-card .n-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px;}
-  .notice-card .n-title{font-weight:700;font-size:0.9rem;}
-  .notice-card .n-date{font-size:0.7rem;color:var(--ink-soft);flex-shrink:0;font-family:'DM Mono',monospace;}
-  .notice-card .n-body{font-size:0.82rem;color:var(--ink-soft);line-height:1.5;}
-  .notice-card.pinned{border-color:var(--orange);background:#FFF8F2;}
+.bday{margin-top:16px;padding:16px 18px;border-radius:var(--r-lg);background:linear-gradient(135deg,var(--y1),#FFFDF6);border:1px solid var(--y2)}
+.bday-h{display:flex;align-items:center;gap:10px;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--y7)}
+.bday-h span{font-size:1.25rem}
+.bday-names{font-family:var(--fd);font-weight:600;font-size:1.25rem;color:var(--g8);margin-top:6px;line-height:1.3}
+.bday-sub{font-size:.8rem;color:var(--ink2);margin-top:4px}
+.bday-next{margin-top:12px;padding-top:10px;border-top:1px dashed var(--y2);display:grid;gap:6px}
+.bday-next div{display:flex;justify-content:space-between;gap:10px;font-size:.84rem}
+.bday-next b{font-weight:600}
+.bday-next small{color:var(--ink3);white-space:nowrap}
+.notice{padding:15px 16px;margin-bottom:10px}
+.notice.pinned{border-color:var(--y2);background:linear-gradient(0deg,#fff,#fff) padding-box, var(--y1);box-shadow:inset 3px 0 0 var(--y5)}
+.notice .n-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.notice .n-title{font-weight:700;font-size:.92rem}
+.notice .n-date{font-size:.72rem;color:var(--ink3);white-space:nowrap}
+.notice .n-body{margin-top:4px;font-size:.85rem;color:var(--ink2);white-space:pre-line}
 
-  /* ---------- Event cards ---------- */
-  .event-card{
-    display:flex;gap:14px;align-items:stretch;
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px;margin-bottom:12px;cursor:pointer;
-  }
-  .event-badge{
-    width:76px;flex-shrink:0;border-radius:10px;background:var(--navy);color:#fff;
-    display:flex;align-items:center;justify-content:center;text-align:center;
-    font-family:'Fraunces',serif;font-weight:700;font-size:0.72rem;line-height:1.25;
-    padding:6px;
-  }
-  .event-badge.has-logo{background:#fff;padding:4px;}
-  .event-badge.has-logo img{width:100%;height:100%;object-fit:contain;border-radius:6px;}
-  .event-info{flex:1;min-width:0;}
-  .event-info h3{margin:0 0 5px;font-size:0.98rem;font-weight:700;}
-  .event-info .loc, .event-info .date{
-    font-size:0.78rem;color:var(--ink-soft);display:flex;align-items:center;gap:5px;margin-bottom:3px;
-  }
-  .event-info .loc svg, .event-info .date svg{width:12px;height:12px;flex-shrink:0;}
-  .status-pill{
-    display:inline-block;margin-top:6px;font-size:0.68rem;font-weight:700;
-    padding:3px 9px;border-radius:999px;letter-spacing:0.02em;
-  }
-  .status-Upcoming{background:#E7EEFF;color:#2C4FBF;}
-  .status-Live{background:#E5F6EC;color:var(--good);}
-  .status-Past{background:#EEF0F3;color:var(--ink-soft);}
-  .event-chevron{align-self:center;color:var(--ink-soft);flex-shrink:0;}
-  .event-chevron svg{width:16px;height:16px;}
+/* ================================= events ================================= */
+.ev{display:flex;gap:14px;padding:12px;margin-bottom:12px;align-items:center;cursor:pointer;transition:border-color .15s}
+.ev:hover{border-color:var(--g3)}
+.ev-badge{width:76px;height:76px;flex-shrink:0;border-radius:var(--r);background:var(--g7);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--fd);font-weight:700;font-size:.7rem;line-height:1.2;padding:6px;overflow:hidden;text-transform:uppercase}
+.ev-badge.logo{background:#fff;border:1px solid var(--line2);padding:4px}
+.ev-badge img{width:100%;height:100%;object-fit:contain}
+.ev-info{flex:1;min-width:0}
+.ev-info h3{font-size:.98rem;margin-bottom:4px}
+.meta{display:flex;align-items:flex-start;gap:6px;font-size:.78rem;color:var(--ink2);margin-bottom:2px}
+.meta svg{width:13px;height:13px;flex-shrink:0;margin-top:3px;stroke:var(--ink3)}
+.chev{color:var(--ink3);flex-shrink:0}
+.chev svg{width:18px;height:18px}
+.ev-hero{border-radius:var(--r-xl);padding:22px;color:#fff;margin-bottom:16px;background:linear-gradient(150deg,var(--g7),var(--g9));position:relative;overflow:hidden}
+.ev-hero .hlogo{width:64px;height:64px;border-radius:14px;background:#fff;object-fit:contain;padding:5px;margin-bottom:14px;display:block}
+.ev-hero h1{font-family:var(--fd);font-weight:600;font-size:1.45rem;margin:10px 0 10px}
+.ev-hero .meta{color:rgba(255,255,255,.82)}
+.ev-hero .meta svg{stroke:var(--y4)}
+.ev-hero .desc{margin-top:12px;font-size:.86rem;color:rgba(255,255,255,.85)}
+.day-h{font-family:var(--fd);font-weight:600;font-size:1.05rem;margin:22px 2px 12px;display:flex;align-items:center;gap:10px}
+.day-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.sess{display:grid;grid-template-columns:86px 1fr;gap:12px;margin-bottom:10px}
+.sess-time{font-size:.72rem;font-weight:700;color:var(--g6);padding-top:13px;line-height:1.35}
+.sess-card{padding:12px 14px;position:relative}
+.sess-card.has-file{padding-right:56px}
+.sess-card .t{font-weight:600;font-size:.9rem}
+.sess-card .who{margin-top:5px;font-size:.74rem;color:var(--y7);font-weight:700}
+.sess-card.brk{background:transparent;border-style:dashed;box-shadow:none}
+.sess-card.brk .t{color:var(--ink2);font-weight:500}
+.sess-file{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:10px;background:var(--y1);color:var(--y7);display:flex;align-items:center;justify-content:center}
+.sess-file svg{width:16px;height:16px}
+.file{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:10px}
+.file-ic{width:40px;height:40px;border-radius:11px;background:var(--g1);color:var(--g7);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-ic svg{width:18px;height:18px}
+.file-info{flex:1;min-width:0}
+.file-info b{display:block;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-info small{color:var(--ink3);font-size:.74rem}
 
-  .empty{
-    text-align:center;color:var(--ink-soft);font-size:0.85rem;padding:36px 10px;
-  }
-  .empty svg{width:36px;height:36px;stroke:var(--line);margin-bottom:10px;}
+/* ================================ profile ================================= */
+.me-card{padding:22px;display:flex;align-items:center;gap:16px}
+.me-card .avatar{width:60px;height:60px;font-size:1.3rem;border-width:3px}
+.me-card h2{font-family:var(--fd);font-weight:600;font-size:1.25rem}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.stat{padding:14px;text-align:center}
+.stat b{display:block;font-family:var(--fd);font-size:1.5rem;color:var(--g7)}
+.stat span{font-size:.72rem;color:var(--ink2);font-weight:600}
+.steps{padding:18px 18px 16px}
+.steps ol{margin:10px 0 0;padding-left:20px;color:var(--ink2);font-size:.86rem;line-height:1.8}
 
-  /* ---------- Events view toggle + search ---------- */
-  .seg{
-    display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:14px;
-  }
-  .seg button{
-    flex:1;border:none;background:transparent;border-radius:999px;padding:9px 6px;
-    font-size:0.82rem;font-weight:600;color:var(--ink-soft);cursor:pointer;
-  }
-  .seg button.active{background:var(--navy);color:#fff;}
-  .search{
-    width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;
-    padding:11px 14px;font-size:0.86rem;margin-bottom:16px;font-family:inherit;
-  }
-  .search:focus{outline:2px solid var(--orange);outline-offset:1px;}
+/* ================================== admin ================================= */
+.adm-title{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 14px}
+.adm-title h1{font-family:var(--fd);font-weight:600;font-size:1.5rem}
+.row{display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:10px}
+.row .grow{flex:1;min-width:0}
+.row .grow b{display:block;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .grow small{display:block;color:var(--ink3);font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.click{cursor:pointer}
+.row.click:hover{border-color:var(--g3)}
+.ini{width:38px;height:38px;border-radius:50%;background:var(--g1);color:var(--g7);font-weight:800;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.ini img{width:100%;height:100%;object-fit:cover}
+.mini-ic{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:700;background:var(--c);color:var(--fg);overflow:hidden}
+.mini-ic img{width:100%;height:100%;object-fit:cover}
+.req{padding:16px;margin-bottom:12px}
+.req-top{display:flex;gap:12px;align-items:center}
+.req-app{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--g0);display:flex;align-items:center;gap:10px;font-size:.85rem}
+.req-note{margin-top:10px;font-size:.84rem;color:var(--ink2);font-style:italic}
+.req-actions{display:flex;gap:8px;margin-top:14px}
+.req-actions .btn{flex:1}
+details.hist{margin-top:18px}
+details.hist summary{cursor:pointer;font-weight:700;font-size:.85rem;color:var(--ink2);padding:6px 2px}
+.toolbar{display:flex;gap:8px;margin-bottom:14px}
+.toolbar .search{margin:0;flex:1}
 
-  /* ---------- Detail view ---------- */
-  .detail-hero{
-    background:var(--navy);color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:18px;
-  }
-  .detail-hero .hero-logo{
-    width:56px;height:56px;border-radius:12px;background:#fff;object-fit:contain;padding:5px;margin-bottom:12px;
-  }
-  .detail-hero .badge-tag{
-    display:inline-block;background:rgba(232,121,43,0.18);color:var(--orange);
-    font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:999px;margin-bottom:10px;
-  }
-  .detail-hero h1{font-family:'Fraunces',serif;font-size:1.35rem;margin:0 0 10px;font-weight:700;}
-  .detail-hero .meta{font-size:0.82rem;color:rgba(255,255,255,0.78);display:flex;align-items:center;gap:6px;margin-bottom:4px;}
-  .detail-hero .meta svg{width:13px;height:13px;flex-shrink:0;}
-  .detail-hero .desc{margin-top:12px;font-size:0.84rem;color:rgba(255,255,255,0.85);line-height:1.5;}
+/* switch */
+.sw{position:relative;width:46px;height:28px;flex-shrink:0}
+.sw input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.sw span{position:absolute;inset:0;border-radius:999px;background:#D3DBD7;transition:background .2s}
+.sw span::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.sw input:checked + span{background:var(--g6)}
+.sw input:checked + span::after{transform:translateX(18px)}
+.sw input:focus-visible + span{outline:3px solid var(--y5);outline-offset:2px}
+.sw input:disabled + span{opacity:.5}
 
-  .tabbar{display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:18px;}
-  .tabbar button{flex:1;border:none;background:transparent;border-radius:999px;padding:9px 6px;font-size:0.82rem;font-weight:600;color:var(--ink-soft);cursor:pointer;}
-  .tabbar button.active{background:var(--ink);color:#fff;}
-  .subview{display:none;}
-  .subview.active{display:block;}
+/* forms */
+.f{margin-bottom:14px}
+.f label{display:block;font-size:.78rem;font-weight:700;color:var(--ink2);margin-bottom:6px}
+.f .help{font-size:.72rem;color:var(--ink3);margin-top:5px}
+.f input[type=text],.f input[type=url],.f input[type=email],.f input[type=date],.f select,.f textarea{width:100%;height:46px;border:1px solid var(--line);border-radius:12px;padding:0 13px;background:#FBFCFB;font-size:.92rem}
+.f textarea{height:auto;min-height:84px;padding:11px 13px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--g5);box-shadow:0 0 0 3px var(--g1);background:#fff}
+.f.bad input,.f.bad textarea,.f.bad select{border-color:var(--danger)}
+.f .err{color:var(--danger);font-size:.74rem;margin-top:5px}
+.f .check,.check{display:flex;align-items:center;gap:10px;font-weight:600;font-size:.88rem}
+.check input{width:20px;height:20px;accent-color:var(--g7)}
+.opts{display:grid;gap:8px}
+.f .opt,.opt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;cursor:pointer;background:#fff}
+.opt input{margin-top:3px;accent-color:var(--g7);width:18px;height:18px;flex-shrink:0}
+.opt b{display:block;font-size:.87rem}
+.opt small{color:var(--ink3);font-size:.76rem}
+.opt:has(input:checked){border-color:var(--g5);background:var(--g0)}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.f .swatch,.swatch{position:relative;display:block}
+.swatch input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+.swatch span{display:block;width:36px;height:36px;border-radius:11px;background:var(--c);border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.swatch input:checked + span{box-shadow:0 0 0 2px var(--g7)}
+.swatch input:focus-visible + span{outline:3px solid var(--y5);outline-offset:2px}
+.form-actions{display:flex;gap:10px;margin:20px 0 -18px;position:sticky;bottom:-18px;background:#fff;padding:12px 0 18px;border-top:1px solid var(--line2)}
+.form-actions .btn-primary{flex:1}
+.divider{height:1px;background:var(--line);margin:22px 0 16px}
+.sub-h{font-size:.82rem;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
 
-  .day-heading{font-family:'Fraunces',serif;font-weight:700;font-size:1.02rem;margin:18px 2px 12px;}
-  .day-heading:first-child{margin-top:0;}
-  .sched-row{display:flex;gap:14px;margin-bottom:12px;}
-  .sched-time{
-    width:88px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--orange-deep);
-    padding-top:14px;
-  }
-  .sched-card{
-    flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
-    position:relative;
-  }
-  .sched-card.has-file{padding-right:52px;}
-  .sched-card .s-title{font-weight:600;font-size:0.92rem;}
-  .sched-card .s-mod{margin-top:6px;font-size:0.72rem;color:#B08A4F;font-weight:600;}
-  .sched-card .s-file{
-    position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;
-    background:#FBEDE1;color:var(--orange-deep);display:flex;align-items:center;justify-content:center;
-  }
-  .sched-card .s-file svg{width:15px;height:15px;}
-
-  .file-card{
-    display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
-    border-radius:12px;padding:12px 14px;margin-bottom:10px;
-  }
-  .file-ic{
-    width:38px;height:38px;border-radius:9px;background:#FBEDE1;color:var(--orange-deep);
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  }
-  .file-ic svg{width:18px;height:18px;}
-  .file-info{flex:1;min-width:0;}
-  .file-info .f-title{font-size:0.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .file-info .f-type{font-size:0.72rem;color:var(--ink-soft);}
-  .file-open{
-    background:var(--navy);color:#fff;border:none;border-radius:9px;padding:7px 12px;
-    font-size:0.74rem;font-weight:600;cursor:pointer;flex-shrink:0;
-  }
-
-  /* ---------- More view ---------- */
-  .more-group-label{font-size:0.72rem;font-weight:700;color:var(--ink-soft);letter-spacing:0.04em;margin:20px 4px 8px;text-transform:uppercase;}
-  .more-group-label:first-child{margin-top:0;}
-  .more-list{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
-  .more-item{
-    display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;
-  }
-  .more-item:last-child{border-bottom:none;}
-  .more-item .ic{width:34px;height:34px;border-radius:9px;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .more-item .ic svg{width:16px;height:16px;stroke:#fff;fill:none;}
-  .more-item .ic.orange{background:var(--orange);}
-  .more-item .txt{flex:1;}
-  .more-item .txt b{display:block;font-size:0.92rem;}
-  .more-item .txt small{color:var(--ink-soft);font-size:0.76rem;}
-  .more-item .chev{color:var(--ink-soft);flex-shrink:0;}
-  .more-item .chev svg{width:16px;height:16px;}
-
-  .install-steps{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:2px;}
-  .install-steps h3{margin:0 0 10px;font-size:0.9rem;}
-  .install-steps ol{margin:0;padding-left:18px;font-size:0.83rem;color:var(--ink-soft);line-height:1.7;}
-  .install-btn{
-    width:100%;background:var(--orange);color:#fff;border:none;border-radius:12px;
-    padding:13px;font-size:0.88rem;font-weight:700;margin-top:14px;cursor:pointer;display:none;
-  }
-
-  .about-card{
-    background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;margin-top:22px;
-  }
-  .about-card .word{font-family:'Fraunces',serif;font-weight:700;font-size:1.1rem;margin-bottom:6px;}
-  .about-card .word b{color:var(--orange);}
-  .about-card p{font-size:0.8rem;color:var(--ink-soft);line-height:1.6;margin:6px 0 0;}
-  .about-card .ver{margin-top:10px;font-size:0.7rem;color:#A6B0BF;}
-
-  /* ---------- admin ---------- */
-  .admin-add-btn{
-    width:100%;background:var(--navy);color:#fff;border:none;border-radius:12px;
-    padding:12px;font-size:0.86rem;font-weight:700;margin-bottom:14px;cursor:pointer;
-  }
-  #admin-status .banner{
-    border-radius:12px;padding:10px 14px;font-size:0.8rem;margin-bottom:14px;
-  }
-  #admin-status .banner.ok{background:#E5F6EC;color:var(--good);}
-  #admin-status .banner.err{background:#FBEDE1;color:var(--orange-deep);}
-  .admin-form{
-    background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px;
-  }
-  .admin-form .af-row{margin-bottom:10px;}
-  .admin-form label{display:block;font-size:0.72rem;font-weight:600;color:var(--ink-soft);margin-bottom:4px;}
-  .admin-form input, .admin-form textarea{
-    width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;
-    font-size:0.85rem;font-family:inherit;background:#FBFAF8;
-  }
-  .admin-form textarea{min-height:60px;resize:vertical;}
-  .admin-form .af-actions{display:flex;gap:8px;margin-top:6px;}
-  .admin-form .af-save{flex:1;background:var(--orange);color:#fff;border:none;border-radius:9px;padding:10px;font-weight:700;font-size:0.84rem;cursor:pointer;}
-  .admin-form .af-cancel{background:none;border:1px solid var(--line);border-radius:9px;padding:10px 14px;font-size:0.84rem;color:var(--ink-soft);cursor:pointer;}
-  .admin-row{
-    background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;
-    display:flex;align-items:center;gap:10px;
-  }
-  .admin-row .ar-info{flex:1;min-width:0;}
-  .admin-row .ar-title{font-weight:600;font-size:0.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .admin-row .ar-sub{font-size:0.72rem;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .admin-row .ar-btn{
-    width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:#fff;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
-  }
-  .admin-row .ar-btn svg{width:14px;height:14px;stroke:var(--ink-soft);}
-  .admin-row .ar-btn.danger svg{stroke:var(--orange-deep);}
-  .admin-gate{text-align:center;padding:40px 20px;color:var(--ink-soft);font-size:0.85rem;}
-
-  /* ---------- Bottom nav ---------- */
-  .bottomnav{
-    position:fixed;bottom:0;left:0;right:0;z-index:30;
-    background:#fff;border-top:1px solid var(--line);
-    display:flex;justify-content:center;
-    padding:8px 10px calc(8px + env(safe-area-inset-bottom));
-  }
-  .bottomnav-inner{
-    display:flex;width:100%;max-width:520px;
-  }
-  .navbtn{
-    flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;
-    color:var(--ink-soft);cursor:pointer;padding:4px;font-family:inherit;
-  }
-  .navbtn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;}
-  .navbtn span{font-size:0.68rem;font-weight:600;}
-  .navbtn.active{color:var(--navy);}
-  .navbtn.active svg{stroke:var(--orange);}
-
-  .toast{
-    position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
-    background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:0.8rem;
-    opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;z-index:50;
-  }
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+/* =============================== bottom sheet ============================= */
+.sheet-wrap{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.sheet-bg{position:absolute;inset:0;background:rgba(10,30,26,.45);animation:fade .2s ease}
+.sheet{position:relative;width:100%;max-width:560px;max-height:90vh;background:#fff;border-radius:24px 24px 0 0;display:flex;flex-direction:column;animation:up .26s cubic-bezier(.2,.8,.2,1);padding-bottom:var(--safe-b)}
+.sheet-grip{width:40px;height:4px;border-radius:4px;background:var(--line);margin:9px auto 0}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 6px}
+.sheet-head h3{font-family:var(--fd);font-weight:600;font-size:1.2rem}
+.sheet-body{padding:6px 18px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+@media (min-width:700px){.sheet-wrap{align-items:center}.sheet{border-radius:24px;max-height:86vh}.sheet-grip{display:none}}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}}
+.sheet-app{display:flex;align-items:center;gap:14px;margin:4px 0 16px}
+.sheet-app .app-ic{width:56px;height:56px}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 18px + var(--safe-b));transform:translate(-50%,20px);background:var(--g9);color:#fff;padding:11px 18px;border-radius:12px;font-size:.84rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;z-index:80;max-width:calc(100% - 32px);box-shadow:var(--sh2)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--danger)}
+@media (min-width:900px){.toast{bottom:28px}}
 </style>
 </head>
 <body>
 
-<div class="topbar" id="topbar">
-  <button class="back" id="backBtn" style="display:none;" aria-label="Back">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-  </button>
-  <img class="mark" src="icons/logo-topbar.png" alt="Kariwala" style="width:26px;height:26px;border-radius:6px;object-fit:cover;flex-shrink:0;">
-  <span class="word">Kariwala <b>Connect</b></span>
-  <button class="refresh" id="refreshBtn" aria-label="Refresh data">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
-  </button>
+<!-- ================================ SPLASH ================================ -->
+<div id="splash" role="status" aria-live="polite">
+  <div class="splash-inner">
+    <img class="splash-logo" src="icons/logo-full.png" alt="Kariwala">
+    <div class="splash-tag">Spreading Happiness</div>
+    <div class="splash-bar" aria-hidden="true"><span></span></div>
+  </div>
+  <div class="splash-foot">Kariwala Connect</div>
+  <span class="sr">Loading Kariwala Connect</span>
 </div>
 
-<main>
+<!-- ================================= LOGIN ================================ -->
+<section id="login" class="login" hidden>
+  <div class="login-hero">
+    <img class="login-logo" src="icons/logo-full-white.png" alt="Kariwala">
+    <h1>Kariwala <em>Connect</em></h1>
+    <div class="login-rule" aria-hidden="true"></div>
+    <!-- The Bhagavad Gita line — change the three lines below to use a different verse -->
+    <blockquote class="gita">
+      <div class="sa" lang="sa">कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।<br>मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥</div>
+      <div class="en">You have a right to your work, never to its fruits. Let not the fruit be your motive, nor be attached to doing nothing.</div>
+      <div class="src">Bhagavad Gita · 2.47</div>
+    </blockquote>
+  </div>
+  <div class="login-card">
+    <h2 id="loginTitle">Sign in</h2>
+    <p class="lead">Use your <b>@kariwala.com</b> Google account to continue.</p>
+    <div class="gbtn-wrap"><div id="gbtn"></div></div>
+    <div id="loginMsg" class="login-msg" role="alert" aria-live="assertive"></div>
+  </div>
+</section>
 
-  <!-- HOME -->
-  <section class="view active" id="view-home">
-    <div class="hero-card">
-      <div class="eyebrow">Namaste!</div>
-      <h1>Welcome to Kariwala Connect</h1>
-      <p>Every company app, event and file — in one place.</p>
+<!-- ================================== APP ================================= -->
+<div id="app" hidden>
+  <header class="top">
+    <button class="icon-btn" id="backBtn" aria-label="Back" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <a class="brand" href="#home" aria-label="Kariwala Connect home">
+      <img src="icons/logo-mark.png" alt="">
+      <span>Kariwala <em>Connect</em></span>
+    </a>
+    <div class="top-right">
+      <button class="icon-btn" id="refreshBtn" aria-label="Refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+      </button>
+      <a class="avatar" id="topAvatar" href="#me" aria-label="Your profile"></a>
     </div>
+  </header>
 
-    <div class="signin-row" id="signinRow">
-      <div id="gSignIn"></div>
-    </div>
-    <div class="signin-row signed-in" id="signedInRow" style="display:none;">
-      <div class="whoami">
-        <img id="whoAvatar" alt="">
-        <div>
-          <b id="whoName"></b>
-          <small id="whoDept"></small>
-        </div>
+  <main>
+    <!-- HOME -->
+    <section data-view="home">
+      <div class="greet">
+        <div class="eyebrow" id="greetDate"></div>
+        <h1 id="greetName">Welcome</h1>
+        <div class="greet-meta" id="greetMeta"></div>
       </div>
-      <button class="signout-btn" id="signOutBtn">Sign out</button>
-    </div>
+      <a class="alert" id="adminAlert" href="#admin/requests" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span id="adminAlertText"></span><span class="go">Review →</span>
+      </a>
 
-    <div class="section-title"><h2>Your apps</h2></div>
-    <input class="search" id="appSearch" placeholder="Search apps…">
-    <div class="app-grid" id="app-grid"></div>
+      <div id="bdayCard"></div>
 
-    <div class="tiles">
-      <div class="tile" data-goto="events">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-        <span>Events</span>
+      <div class="sec-head"><h2>Your apps</h2><span class="muted" style="font-size:.78rem" id="appCount"></span></div>
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr">Search apps</span><input id="appSearch" type="search" placeholder="Search apps" autocomplete="off"></label>
+      <div class="app-grid" id="appGrid"></div>
+      <div class="grid-note" id="gridNote"></div>
+
+      <div id="noticeWrap">
+        <div class="sec-head"><h2>Notices</h2></div>
+        <div id="noticeList"></div>
       </div>
-      <div class="tile" data-goto="all-files">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
-        <span>Files</span>
+
+      <div class="sec-head"><h2>Upcoming events</h2><a href="#events">View all</a></div>
+      <div id="homeEvents"></div>
+    </section>
+
+    <!-- EVENTS -->
+    <section data-view="events" hidden>
+      <div class="adm-title"><h1>Events</h1></div>
+      <div class="seg" id="evSeg" role="tablist">
+        <button class="on" data-v="up" role="tab">Upcoming</button>
+        <button data-v="past" role="tab">Past</button>
       </div>
-      <div class="tile" data-goto="more">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
-        <span>More</span>
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr">Search events</span><input id="evSearch" type="search" placeholder="Search events or places" autocomplete="off"></label>
+      <div id="evList"></div>
+    </section>
+
+    <!-- EVENT DETAIL -->
+    <section data-view="event" hidden>
+      <div id="evHero"></div>
+      <div class="seg" id="evTabs" role="tablist">
+        <button class="on" data-v="prog" role="tab">Programme</button>
+        <button data-v="files" role="tab">Attachments</button>
       </div>
-    </div>
+      <div id="evProg"></div>
+      <div id="evFiles" hidden></div>
+    </section>
 
-    <div class="section-title"><h2>Notices</h2></div>
-    <div id="notices-list"></div>
+    <!-- FILES -->
+    <section data-view="files" hidden>
+      <div class="adm-title"><h1>Files</h1></div>
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr">Search files</span><input id="fileSearch" type="search" placeholder="Search files" autocomplete="off"></label>
+      <div id="fileList"></div>
+    </section>
 
-    <div class="section-title"><h2>Upcoming events</h2><a href="#" data-goto="events">View all</a></div>
-    <div id="home-upcoming"></div>
-  </section>
-
-  <!-- EVENTS -->
-  <section class="view" id="view-events">
-    <div class="seg" id="eventSeg">
-      <button class="active" data-status="Upcoming">Upcoming</button>
-      <button data-status="Past">Past</button>
-    </div>
-    <input class="search" id="eventSearch" placeholder="Search events or places…">
-    <div id="events-list"></div>
-  </section>
-
-  <!-- EVENT DETAIL -->
-  <section class="view" id="view-detail">
-    <div class="detail-hero" id="detail-hero"></div>
-    <div class="tabbar">
-      <button class="active" data-sub="programme">Programme</button>
-      <button data-sub="attachments">Attachments</button>
-    </div>
-    <div class="subview active" id="sub-programme"></div>
-    <div class="subview" id="sub-attachments"></div>
-  </section>
-
-  <!-- ALL FILES -->
-  <section class="view" id="view-all-files">
-    <div class="section-title"><h2>All files</h2></div>
-    <div id="all-files-list"></div>
-  </section>
-
-  <!-- MORE -->
-  <section class="view" id="view-more">
-    <div class="more-group-label">This event data</div>
-    <div class="more-list">
-      <div class="more-item" data-goto="events">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-        <div class="txt"><b>All Events</b><small id="more-event-count">—</small></div>
-        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    <!-- ADMIN -->
+    <section data-view="admin" hidden>
+      <div class="adm-title"><h1>Admin</h1></div>
+      <div class="seg" id="admTabs" role="tablist">
+        <button data-v="requests" role="tab">Requests</button>
+        <button data-v="people" role="tab">People</button>
+        <button data-v="apps" role="tab">Apps</button>
+        <button data-v="content" role="tab">Content</button>
       </div>
-      <div class="more-item" id="refreshRow">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></div>
-        <div class="txt"><b>Refresh data</b><small id="last-synced">Pulls the latest from the Google Sheet</small></div>
-        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+      <div id="admBody"></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section data-view="me" hidden>
+      <div class="card me-card" id="meCard"></div>
+      <div class="stat-row" id="meStats"></div>
+      <div class="sec-head"><h2>Install on your phone</h2></div>
+      <div class="card steps">
+        <div class="muted" style="font-size:.86rem">Add Kariwala Connect to your home screen — it opens full-screen like any other app.</div>
+        <ol id="installSteps"></ol>
+        <button class="btn btn-accent btn-block" id="installBtn" hidden style="margin-top:12px">Install app</button>
       </div>
+      <div class="sec-head"><h2>Account</h2></div>
+      <button class="btn btn-danger btn-block" id="signOutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        Sign out
+      </button>
+      <p class="muted" style="text-align:center;font-size:.74rem;margin-top:22px">Kariwala Connect v2.0 · Kariwala Industries Ltd.</p>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Main">
+    <div class="tabbar-in" id="tabbar">
+      <a class="tab" href="#home" data-nav="home"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Apps</span></a>
+      <a class="tab" href="#events" data-nav="events"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Events</span></a>
+      <a class="tab" href="#files" data-nav="files"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span>Files</span></a>
+      <a class="tab" href="#admin" data-nav="admin" id="navAdmin" hidden><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg><span>Admin</span><b class="dot" id="navAdminDot" hidden></b></a>
+      <a class="tab" href="#me" data-nav="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>Me</span></a>
     </div>
+  </nav>
+</div>
 
-    <div class="more-group-label" id="adminGroupLabel" style="display:none;">Admin</div>
-    <div class="more-list" id="adminGroupList" style="display:none;">
-      <div class="more-item" data-goto="admin">
-        <div class="ic orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
-        <div class="txt"><b>Edit content</b><small>Add, edit or remove events, apps and notices</small></div>
-        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
-      </div>
+<!-- ============================== BOTTOM SHEET ============================ -->
+<div class="sheet-wrap" id="sheetWrap" hidden>
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="sheet-head"><h3 id="sheetTitle"></h3>
+      <button class="icon-btn" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
-
-    <div class="more-group-label">Install</div>
-    <div class="install-steps">
-      <h3>Add Kariwala Connect to your home screen</h3>
-      <ol id="install-steps-list"></ol>
-      <button class="install-btn" id="installBtn">Install app</button>
-    </div>
-
-    <div class="about-card">
-      <div class="word">Kariwala <b>Connect</b></div>
-      <p>The digital home for every Kariwala Industries event — one place for schedules, presentations and files. Built to save time and reduce paperwork.</p>
-      <div class="ver">v1.0</div>
-    </div>
-  </section>
-
-  <!-- ADMIN -->
-  <section class="view" id="view-admin">
-    <div class="tabbar" id="adminTabbar">
-      <button class="active" data-table="Events">Events</button>
-      <button data-table="Schedule">Schedule</button>
-      <button data-table="Attachments">Files</button>
-    </div>
-    <div id="admin-status"></div>
-    <button class="admin-add-btn" id="adminAddBtn">+ Add new</button>
-    <div id="admin-form-wrap"></div>
-    <div id="admin-list"></div>
-  </section>
-
-</main>
-
-<div class="toast" id="toast"></div>
-
-<nav class="bottomnav"><div class="bottomnav-inner">
-  <button class="navbtn active" data-goto="home">
-    <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
-    <span>Home</span>
-  </button>
-  <button class="navbtn" data-goto="events">
-    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-    <span>Events</span>
-  </button>
-  <button class="navbtn" data-goto="all-files">
-    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-    <span>Files</span>
-  </button>
-  <button class="navbtn" data-goto="more">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
-    <span>More</span>
-  </button>
-</div></nav>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* =========================================================================
-   CONFIG — this is the only part you normally need to touch.
-   Paste your Google Sheet ID below (the long code in the sheet's URL,
-   between /d/ and /edit). Keep the three tab names as they are, or change
-   them here if you named your tabs differently.
-   ========================================================================= */
+"use strict";
+/* ============================================================================
+   CONFIG — already filled in. Only change these if the API or Google
+   sign-in setup ever changes.
+   ========================================================================== */
 const CONFIG = {
-  SHEET_ID: "1I76IUMzsb76RBtol7RLYYGEwqr7J8JZ4mmG3Jh0YjDQ",
-  TABS: {
-    events: "Events",
-    schedule: "Schedule",
-    attachments: "Attachments",
-    apps: "Apps",
-    access: "Access",
-    people: "People",
-    notices: "Notices",
-    admins: "Admins"
-  },
-  // Optional override: paste a Drive share link here if you ever want to
-  // swap the app's logo without asking me. Leave blank to keep the
-  // Kariwala logo that's already built in.
-  APP_LOGO_URL: "",
-  // Google Cloud OAuth Client ID, used only to identify who is signed in
-  // (so the app grid can show the right apps for that person). See the
-  // README for how to create this - it's a 5-minute one-time setup.
+  API_URL: "https://script.google.com/macros/s/AKfycbyC5pp4WgucbWvphjafO1tbmhUBsxVXY1zn4iAVOdlUIfzpjZMBKfAliKK-dbl-TVd7/exec",
   GOOGLE_CLIENT_ID: "808670362118-1kvaea3c3kc0se4ncpagdl0cb34rib44.apps.googleusercontent.com",
-  // A Google Form "pre-filled link" (see README) that requesting access to
-  // a locked app opens, with the person's name/email and the app name
-  // filled in automatically. REQUEST_FORM_FIELDS maps to the numeric
-  // entry.xxxxx IDs your specific form generates - the README shows how
-  // to get these in one copy-paste step.
-  REQUEST_FORM_BASE_URL: "",
-  REQUEST_FORM_FIELDS: { name: "", email: "", app: "" },
-  // The deployed Apps Script Web App URL (see README Step 4). This is the
-  // only thing that ever writes to the Sheet - everything else just reads.
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyC5pp4WgucbWvphjafO1tbmhUBsxVXY1zn4iAVOdlUIfzpjZMBKfAliKK-dbl-TVd7/exec"
+  DOMAIN: "kariwala.com"
 };
-/* ========================================================================= */
 
-// Turns a normal Google Drive "share" link (of any common shape) into a
-// URL that can be used directly as an <img src>. Anyone can paste a
-// regular Drive share link into the Sheet - no special format needed.
-function driveImageUrl(url){
-  if(!url) return "";
-  const patterns = [/\/file\/d\/([^/]+)/, /[?&]id=([^&]+)/, /\/d\/([^/]+)/];
-  for(const p of patterns){
-    const m = url.match(p);
-    if(m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+/* ================================ utilities ================================ */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const lc = v => String(v ?? "").trim().toLowerCase();
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} }
+};
+function safeUrl(u) {
+  u = String(u || "").trim();
+  if (!u) return "";
+  if (/^icons\/[\w.\-]+$/.test(u)) return u;
+  try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : ""; } catch { return ""; }
+}
+function imgUrl(u) {
+  u = String(u || "").trim();
+  if (!u) return "";
+  if (u.includes("drive.google.com") || u.includes("docs.google.com")) {
+    const m = u.match(/\/d\/([\w-]+)/) || u.match(/[?&]id=([\w-]+)/);
+    if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w600`;
   }
-  return url; // already a direct image URL
+  return safeUrl(u);
+}
+function slug(s) { return lc(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+function initials(name) { return String(name || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0] || "").join("").toUpperCase() || "?"; }
+function parseDate(s) {
+  const m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  const d = new Date(s); return isNaN(d) ? null : d;
+}
+function fmtDate(s, withYear = true) {
+  const d = parseDate(s); if (!d) return s || "";
+  return d.toLocaleDateString("en-IN", withYear ? { day: "numeric", month: "short", year: "numeric" } : { day: "numeric", month: "short" });
+}
+function fmtRange(ev) {
+  const a = parseDate(ev.StartDate), b = parseDate(ev.EndDate);
+  if (!a) return ev.StartDate || "";
+  if (!b || a.toDateString() === b.toDateString()) return fmtDate(ev.StartDate);
+  const same = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+  return `${a.toLocaleDateString("en-IN", same ? { day: "numeric" } : { day: "numeric", month: "short" })} – ${fmtDate(ev.EndDate)}`;
+}
+function evStatus(ev) {
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const a = parseDate(ev.StartDate), b = parseDate(ev.EndDate) || a;
+  if (!a || t < a) return "Upcoming";
+  return b && t > b ? "Past" : "Live";
+}
+let toastT;
+function toast(msg, kind = "") {
+  const t = $("#toast"); t.textContent = msg; t.className = "toast show " + kind;
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = "toast", 2800);
+}
+const ICON = {
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-7.5 8-13a8 8 0 1 0-16 0c0 5.5 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
+  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+  empty: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>'
+};
+const empty = msg => `<div class="empty">${ICON.empty}<div>${esc(msg)}</div></div>`;
+
+/* Brand tile colours — every app tile uses a green or yellow shade. */
+const SWATCHES = [
+  { c: "#1B6257", fg: "#FFFFFF", name: "Kariwala green" },
+  { c: "#2E8A72", fg: "#FFFFFF", name: "Leaf" },
+  { c: "#0F4237", fg: "#FFFFFF", name: "Forest" },
+  { c: "#F0B323", fg: "#0A3029", name: "Marigold" },
+  { c: "#5E8F7E", fg: "#FFFFFF", name: "Sage" },
+  { c: "#A8740A", fg: "#FFFFFF", name: "Amber" }
+];
+function tileColour(app) {
+  const hit = SWATCHES.find(s => lc(s.c) === lc(app.colour));
+  if (hit) return hit;
+  let h = 0; for (const ch of String(app.id || app.app_id || app.name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return SWATCHES[h % SWATCHES.length];
+}
+function appIconHtml(app, cls = "app-ic") {
+  const sw = tileColour(app), src = imgUrl(app.icon);
+  const inner = src ? `<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : esc(String(app.name || "?").trim().charAt(0).toUpperCase());
+  return `<span class="${cls}" style="--c:${sw.c};--fg:${sw.fg}">${inner}</span>`;
 }
 
-function sheetUrl(tabName){
-  return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&t=${Date.now()}`;
+/* ============================== session & API ============================== */
+let SESSION = null;           // { token, email, name, given, picture, exp }
+const STATE = { screen: "splash", data: null, admin: null, loadedAt: 0, evSeg: "up", admTab: "requests", contentTab: "Events" };
+const SPLASH_MIN = new Promise(r => setTimeout(r, 900));
+
+function decodeJwt(t) {
+  try {
+    const b = t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(decodeURIComponent(atob(b).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")));
+  } catch { return null; }
+}
+const tokenFresh = s => !!s && !!s.token && (s.exp * 1000 - Date.now() > 60 * 1000);
+
+async function api(action, payload = {}) {
+  if (!tokenFresh(SESSION)) { const e = new Error("Your session has expired. Please sign in again."); e.code = "auth"; authFailed(e); throw e; }
+  let res, data;
+  try {
+    res = await fetch(CONFIG.API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // simple request: no CORS pre-flight
+      body: JSON.stringify({ action, idToken: SESSION.token, ...payload })
+    });
+    data = await res.json();
+  } catch {
+    const e = new Error("Couldn't reach Kariwala Connect. Check your internet and try again."); e.code = "network"; throw e;
+  }
+  if (!data.ok) {
+    const e = new Error(data.error || "Something went wrong."); e.code = data.code;
+    if (e.code === "auth" || e.code === "domain") authFailed(e);
+    throw e;
+  }
+  return data;
 }
 
-function fetchCsv(tabName){
-  return new Promise((resolve) => {
-    if (CONFIG.SHEET_ID.includes("PASTE_YOUR")) { resolve([]); return; }
-    Papa.parse(sheetUrl(tabName), {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      complete: (res) => resolve(res.data || []),
-      error: () => resolve([])
+function authFailed(e) {
+  if (e.code === "domain" && window.google?.accounts?.id) google.accounts.id.disableAutoSelect();
+  if (SESSION) { SESSION.token = ""; store.set("kc.session", SESSION); }
+  showLogin(e.message);
+}
+
+/* ================================ Google sign-in =========================== */
+let gisReady = false;
+function initGIS() {
+  if (gisReady) return true;
+  if (!window.google?.accounts?.id) return false;
+  google.accounts.id.initialize({
+    client_id: CONFIG.GOOGLE_CLIENT_ID,
+    callback: onCredential,
+    auto_select: true,              // returning staff are signed back in automatically
+    cancel_on_tap_outside: false,
+    hd: CONFIG.DOMAIN,              // only offer @kariwala.com accounts
+    itp_support: true,
+    use_fedcm_for_prompt: true
+  });
+  return (gisReady = true);
+}
+function waitForGIS(ms = 8000) {
+  return new Promise(res => {
+    const t0 = Date.now();
+    (function poll() { if (initGIS()) return res(true); if (Date.now() - t0 > ms) return res(false); setTimeout(poll, 120); })();
+  });
+}
+function setLoginMsg(html, kind) { const m = $("#loginMsg"); m.innerHTML = html; m.className = "login-msg " + (kind || ""); }
+
+async function showLogin(message = "") {
+  await SPLASH_MIN;
+  STATE.screen = "login";
+  closeSheet();
+  $("#app").hidden = true; $("#login").hidden = false; hideSplash();
+  const prev = store.get("kc.session");
+  $("#loginTitle").textContent = prev?.given || prev?.name ? `Welcome back, ${prev.given || prev.name.split(" ")[0]}` : "Sign in";
+  setLoginMsg(message ? esc(message) : "", message ? "err" : "");
+  if (!(await waitForGIS())) { setLoginMsg("Google sign-in couldn't load. Check your connection and refresh the page.", "err"); return; }
+  const w = Math.max(220, Math.min(320, $(".gbtn-wrap").clientWidth));
+  google.accounts.id.renderButton($("#gbtn"), { theme: "filled_blue", size: "large", shape: "pill", text: "continue_with", width: w, logo_alignment: "left" });
+  if (!message) google.accounts.id.prompt();
+}
+
+function onCredential(resp) {
+  const p = decodeJwt(resp.credential);
+  if (!p) return setLoginMsg("Sign-in didn't complete. Please try again.", "err");
+  const email = lc(p.email);
+  if (p.hd !== CONFIG.DOMAIN || !email.endsWith("@" + CONFIG.DOMAIN)) {
+    google.accounts.id.disableAutoSelect();
+    return setLoginMsg(`<b>${esc(email)}</b> isn't a Kariwala account. Please choose your <b>@${CONFIG.DOMAIN}</b> email.`, "err");
+  }
+  SESSION = { token: resp.credential, email, name: p.name || email, given: p.given_name || "", picture: p.picture || "", exp: p.exp };
+  store.set("kc.session", SESSION);
+  setLoginMsg("Signing you in…", "info");
+  loadData();
+}
+
+function signOut() {
+  if (window.google?.accounts?.id) google.accounts.id.disableAutoSelect();
+  store.del("kc.session"); store.del("kc.data");
+  SESSION = null; STATE.data = null; STATE.admin = null;
+  history.replaceState(null, "", location.pathname);
+  showLogin();
+  setLoginMsg("You've signed out.", "info");
+}
+
+/* ================================ boot & data ============================== */
+function hideSplash() { $("#splash").classList.add("out"); }
+
+async function loadData() {
+  $("#refreshBtn").classList.add("spin");
+  try {
+    const data = await api("bootstrap");
+    delete data.ok;
+    STATE.data = data; STATE.loadedAt = Date.now();
+    store.set("kc.data", { email: SESSION.email, data });
+    await enterApp();
+  } catch (e) {
+    if (e.code === "auth" || e.code === "domain") return;
+    if (STATE.screen === "app") toast(e.message, "err");
+    else if (STATE.data) await enterApp();
+    else showLogin(e.message);
+  } finally { $("#refreshBtn").classList.remove("spin"); }
+}
+
+async function enterApp() {
+  await SPLASH_MIN;
+  if (STATE.screen !== "app") {
+    STATE.screen = "app";
+    $("#login").hidden = true; $("#app").hidden = false; hideSplash();
+  }
+  renderAll();
+}
+
+function boot() {
+  SESSION = store.get("kc.session");
+  const cached = store.get("kc.data");
+  if (tokenFresh(SESSION)) {
+    if (cached && cached.email === SESSION.email) { STATE.data = cached.data; enterApp(); }
+    loadData();
+  } else {
+    showLogin();
+  }
+  setTimeout(hideSplash, 9000); // never leave anyone stuck on the splash
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible" || STATE.screen !== "app") return;
+  if (!tokenFresh(SESSION)) return showLogin("Your session ended — continue with Google to pick up where you left off.");
+  if (Date.now() - STATE.loadedAt > 5 * 60 * 1000) loadData();
+});
+
+/* ================================== router ================================= */
+function route() {
+  if (STATE.screen !== "app" || !STATE.data) return;
+  const [raw, arg] = (location.hash.slice(1) || "home").split("/");
+  let v = ["home", "events", "event", "files", "admin", "me"].includes(raw) ? raw : "home";
+  if (v === "admin" && !STATE.data.me.isAdmin) v = "home";
+  $$("[data-view]").forEach(s => s.hidden = s.dataset.view !== v);
+  $$("#tabbar .tab").forEach(t => {
+    const on = t.dataset.nav === (v === "event" ? "events" : v);
+    t.classList.toggle("on", on); on ? t.setAttribute("aria-current", "page") : t.removeAttribute("aria-current");
+  });
+  $("#backBtn").hidden = v !== "event";
+  if (v === "event") renderEventDetail(decodeURIComponent(arg || ""));
+  if (v === "admin") showAdmin(arg || STATE.admTab);
+  document.title = { home: "Kariwala Connect", events: "Events · Kariwala Connect", event: "Event · Kariwala Connect", files: "Files · Kariwala Connect", admin: "Admin · Kariwala Connect", me: "Profile · Kariwala Connect" }[v];
+  if (STATE.lastView !== v + arg) window.scrollTo(0, 0);
+  STATE.lastView = v + arg;
+}
+window.addEventListener("hashchange", route);
+$("#backBtn").addEventListener("click", () => history.length > 1 ? history.back() : (location.hash = "#events"));
+
+function renderAll() {
+  const me = STATE.data.me;
+  const av = $("#topAvatar");
+  av.innerHTML = me.picture ? `<img src="${esc(safeUrl(me.picture))}" alt="" referrerpolicy="no-referrer">` : esc(initials(me.name));
+  $("#navAdmin").hidden = !me.isAdmin;
+  const dot = $("#navAdminDot"); dot.hidden = !STATE.data.pendingRequests;
+  dot.textContent = STATE.data.pendingRequests || "";
+  renderHome(); renderEvents(); renderFiles(); renderMe();
+  route();
+}
+
+/* =================================== home ================================== */
+function renderHome() {
+  const d = STATE.data, me = d.me, hr = new Date().getHours();
+  const first = SESSION?.given || String(me.name).split(" ")[0];
+  $("#greetDate").textContent = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
+  $("#greetName").textContent = `${hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening"}, ${first}`;
+  const open = d.apps.filter(a => a.access === "open").length;
+  const upcoming = d.events.filter(e => evStatus(e) !== "Past").length;
+  $("#greetMeta").innerHTML = `<span><b>${open}</b> apps open to you</span><span><b>${upcoming}</b> upcoming events</span>${me.department ? `<span>${esc(me.department)}</span>` : ""}`;
+  const pend = d.pendingRequests || 0;
+  $("#adminAlert").hidden = !me.isAdmin || !pend;
+  $("#adminAlertText").textContent = `${pend} access request${pend === 1 ? "" : "s"} waiting for you`;
+  renderAppGrid(); renderNotices(); renderBirthdays();
+  const up = d.events.filter(e => evStatus(e) !== "Past").sort((a, b) => (parseDate(a.StartDate) || 0) - (parseDate(b.StartDate) || 0)).slice(0, 3);
+  $("#homeEvents").innerHTML = up.length ? up.map(evCard).join("") : empty("No upcoming events right now.");
+}
+
+const STATE_ORDER = { open: 0, pending: 1, locked: 2 };
+function renderAppGrid() {
+  const q = lc($("#appSearch").value);
+  const apps = STATE.data.apps
+    .map(a => ({ ...a, soon: /soon/i.test(a.status || "") }))
+    .filter(a => !q || lc(a.name).includes(q) || lc(a.group).includes(q))
+    .sort((a, b) => (a.soon - b.soon) || (STATE_ORDER[a.access] - STATE_ORDER[b.access]));
+  const total = STATE.data.apps.length;
+  $("#appCount").textContent = total ? `${total} app${total === 1 ? "" : "s"}` : "";
+  $("#appGrid").innerHTML = apps.length ? apps.map(a => {
+    const st = a.soon ? "soon" : a.access;
+    const label = st === "pending" ? `<span class="app-state" style="color:var(--y6)">Requested</span>` : st === "soon" ? `<span class="app-state" style="color:var(--ink3)">Coming soon</span>` : "";
+    const corner = st === "locked" ? `<span class="lock">${ICON.lock}</span>` : st === "pending" ? `<span class="lock">${ICON.clock}</span>` : (a.badge ? `<span class="badge">${esc(a.badge)}</span>` : "");
+    const aria = st === "open" ? `Open ${a.name}` : st === "pending" ? `${a.name}, access requested` : st === "soon" ? `${a.name}, coming soon` : `${a.name}, needs approval`;
+    return `<button class="app" data-app="${esc(a.id)}" data-state="${st}" aria-label="${esc(aria)}">
+      <span style="position:relative">${appIconHtml(a)}${corner}</span>
+      <span class="app-name">${esc(a.name)}</span>${label}</button>`;
+  }).join("") : empty(total ? "No apps match that search." : "No apps have been added yet.");
+  const anyLocked = STATE.data.apps.some(a => a.access !== "open");
+  $("#gridNote").innerHTML = anyLocked ? `<span><i style="background:var(--g7)"></i>Open to you</span><span><i style="background:#D9DFDC"></i>Needs approval — tap to request</span>` : "";
+}
+$("#appSearch").addEventListener("input", renderAppGrid);
+
+$("#appGrid").addEventListener("click", e => {
+  const btn = e.target.closest(".app"); if (!btn) return;
+  const app = STATE.data.apps.find(a => a.id === btn.dataset.app); if (!app) return;
+  const st = btn.dataset.state;
+  if (st === "open") {
+    const url = safeUrl(app.url);
+    if (url) window.open(url, "_blank", "noopener"); else toast(`${app.name} doesn't have a link yet.`);
+    return;
+  }
+  if (st === "soon") return toast(`${app.name} is coming soon.`);
+  if (st === "pending") return openSheet("Request sent", `
+    <div class="sheet-app">${appIconHtml(app)}<div><b>${esc(app.name)}</b><div class="muted" style="font-size:.84rem">Waiting for approval</div></div></div>
+    <p class="muted" style="font-size:.9rem">Your request has been sent${app.contact ? ` to <b>${esc(app.contact)}</b>` : ""}. The app will turn green on your screen as soon as it's approved.</p>
+    <button class="btn btn-ghost btn-block" data-close style="margin-top:8px">OK</button>`);
+  openSheet("Needs approval", `
+    <div class="sheet-app">${appIconHtml(app)}<div><b>${esc(app.name)}</b><div class="muted" style="font-size:.84rem">${esc(app.group || "Kariwala app")}</div></div></div>
+    <p class="muted" style="font-size:.9rem;margin-top:0">${esc(app.name)} isn't open to you yet. Send a request and ${app.contact ? `<b>${esc(app.contact)}</b>` : "an admin"} will review it.</p>
+    <div class="f"><label for="reqNote">Why do you need it? <span style="font-weight:500">(optional)</span></label>
+      <textarea id="reqNote" maxlength="500" placeholder="e.g. I handle dispatch for the Bags division"></textarea></div>
+    <button class="btn btn-primary btn-block" id="reqSend">Request access</button>`, body => {
+    $("#reqSend", body).addEventListener("click", async ev => {
+      const b = ev.currentTarget; b.disabled = true; b.textContent = "Sending…";
+      try {
+        await api("request_access", { appId: app.id, note: $("#reqNote", body).value });
+        app.access = "pending"; renderAppGrid(); closeSheet(); toast("Request sent — you'll see it turn green once approved.");
+      } catch (err) { b.disabled = false; b.textContent = "Request access"; if (err.code !== "auth") toast(err.message, "err"); }
+    });
+  });
+});
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthIdx = m => { const n = parseInt(m, 10); return n >= 1 && n <= 12 ? n - 1 : MONTHS.findIndex(x => lc(x) === lc(m).slice(0, 3)); };
+function joinNames(n) { return n.length <= 1 ? n.join("") : n.slice(0, -1).join(", ") + " and " + n[n.length - 1]; }
+function renderBirthdays() {
+  const list = STATE.data.birthdays || [], t = new Date(); t.setHours(0, 0, 0, 0);
+  const withNext = list.map(b => {
+    const m = monthIdx(b.month), d = parseInt(b.day, 10);
+    if (m < 0 || !d) return null;
+    let next = new Date(t.getFullYear(), m, d); if (next < t) next = new Date(t.getFullYear() + 1, m, d);
+    return { ...b, next, inDays: Math.round((next - t) / 864e5) };
+  }).filter(Boolean);
+  const today = withNext.filter(b => b.inDays === 0), soon = withNext.filter(b => b.inDays > 0 && b.inDays <= 7).sort((a, b) => a.inDays - b.inDays);
+  if (!today.length && !soon.length) { $("#bdayCard").innerHTML = ""; return; }
+  const when = b => b.inDays === 1 ? "Tomorrow" : b.next.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+  $("#bdayCard").innerHTML = `<div class="bday">
+    ${today.length ? `<div class="bday-h"><span aria-hidden="true">🎂</span>Birthdays today</div>
+      <div class="bday-names">Happy birthday, ${esc(joinNames(today.map(b => b.name)))}!</div>
+      <div class="bday-sub">Wish them well today 🎉</div>` : `<div class="bday-h"><span aria-hidden="true">🎂</span>Birthdays this week</div>`}
+    ${soon.length ? `<div class="bday-next">${soon.map(b => `<div><b>${esc(b.name)}</b><small>${esc(when(b))}</small></div>`).join("")}</div>` : ""}
+  </div>`;
+}
+
+function renderNotices() {
+  const list = [...STATE.data.notices].sort((a, b) => ((lc(b.pinned) === "yes") - (lc(a.pinned) === "yes")) || ((parseDate(b.date) || 0) - (parseDate(a.date) || 0))).slice(0, 5);
+  $("#noticeWrap").hidden = !list.length;
+  $("#noticeList").innerHTML = list.map(n => `
+    <div class="card notice${lc(n.pinned) === "yes" ? " pinned" : ""}">
+      <div class="n-top"><div class="n-title">${esc(n.title)}</div><div class="n-date">${esc(fmtDate(n.date))}</div></div>
+      ${n.body ? `<div class="n-body">${esc(n.body)}</div>` : ""}
+    </div>`).join("");
+}
+
+/* ================================== events ================================= */
+function evCard(ev) {
+  const st = evStatus(ev), logo = imgUrl(ev.LogoURL);
+  return `<a class="card ev" href="#event/${encodeURIComponent(ev.EventID)}">
+    ${logo ? `<div class="ev-badge logo"><img src="${esc(logo)}" alt="${esc(ev.Name)}" loading="lazy"></div>` : `<div class="ev-badge">${esc(ev.Badge || ev.Name)}</div>`}
+    <div class="ev-info"><h3>${esc(ev.Name)}</h3>
+      ${ev.Location ? `<div class="meta">${ICON.pin}<span>${esc(ev.Location)}</span></div>` : ""}
+      <div class="meta">${ICON.cal}<span>${esc(fmtRange(ev))}</span></div>
+      <span class="chip ${st === "Live" ? "yellow" : st === "Past" ? "grey" : "green"}" style="margin-top:6px">${st === "Live" ? "Happening now" : st}</span>
+    </div><span class="chev">${ICON.chev}</span></a>`;
+}
+function renderEvents() {
+  const q = lc($("#evSearch").value), past = STATE.evSeg === "past";
+  const list = STATE.data.events
+    .filter(e => past ? evStatus(e) === "Past" : evStatus(e) !== "Past")
+    .filter(e => !q || lc(e.Name).includes(q) || lc(e.Location).includes(q))
+    .sort((a, b) => past ? (parseDate(b.StartDate) || 0) - (parseDate(a.StartDate) || 0) : (parseDate(a.StartDate) || 0) - (parseDate(b.StartDate) || 0));
+  $("#evList").innerHTML = list.length ? list.map(evCard).join("") : empty(past ? "No past events." : "No upcoming events.");
+}
+$("#evSearch").addEventListener("input", renderEvents);
+$("#evSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  STATE.evSeg = b.dataset.v; $$("#evSeg button").forEach(x => x.classList.toggle("on", x === b)); renderEvents();
+});
+
+const BREAKS = ["tea break", "lunch", "dinner", "breakfast", "high tea"];
+function renderEventDetail(id) {
+  const ev = STATE.data.events.find(e => e.EventID === id);
+  if (!ev) { $("#evHero").innerHTML = empty("This event isn't available anymore."); $("#evProg").innerHTML = ""; $("#evFiles").innerHTML = ""; return; }
+  const logo = imgUrl(ev.LogoURL), st = evStatus(ev);
+  $("#evHero").innerHTML = `<div class="ev-hero">
+    ${logo ? `<img class="hlogo" src="${esc(logo)}" alt="">` : ""}
+    <span class="chip yellow">${st === "Live" ? "HAPPENING NOW" : st.toUpperCase()}</span>
+    <h1>${esc(ev.Name)}</h1>
+    ${ev.Location ? `<div class="meta">${ICON.pin}<span>${esc(ev.Location)}</span></div>` : ""}
+    <div class="meta">${ICON.cal}<span>${esc(fmtRange(ev))}</span></div>
+    ${ev.Description ? `<div class="desc">${esc(ev.Description)}</div>` : ""}</div>`;
+  const rows = STATE.data.schedule.filter(s => s.EventID === id);
+  const days = [...new Set(rows.map(r => r.Day || ""))];
+  $("#evProg").innerHTML = rows.length ? days.map(day => `
+    ${day ? `<div class="day-h">${esc(day)}</div>` : ""}
+    ${rows.filter(r => (r.Day || "") === day).map(r => {
+      const url = safeUrl(r.FileURL), brk = BREAKS.some(w => lc(r.Session).includes(w));
+      return `<div class="sess"><div class="sess-time">${esc(r.Time)}</div>
+        <div class="card sess-card${url ? " has-file" : ""}${brk ? " brk" : ""}">
+          <div class="t">${esc(r.Session)}</div>${r.Speaker ? `<div class="who">${esc(r.Speaker)}</div>` : ""}
+          ${url ? `<a class="sess-file" href="${esc(url)}" target="_blank" rel="noopener" aria-label="Open ${esc(r.FileTitle || "attachment")}" title="${esc(r.FileTitle || "Open attachment")}">${ICON.link}</a>` : ""}
+        </div></div>`;
+    }).join("")}`).join("") : empty("The programme hasn't been added yet.");
+  const files = filesFor(id);
+  $("#evFiles").innerHTML = files.length ? files.map(fileRow).join("") : empty("No files for this event yet.");
+  setEvTab("prog");
+}
+function setEvTab(v) {
+  $$("#evTabs button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  $("#evProg").hidden = v !== "prog"; $("#evFiles").hidden = v !== "files";
+}
+$("#evTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setEvTab(b.dataset.v); });
+
+function filesFor(eventId) {
+  const d = STATE.data, name = id => (d.events.find(e => e.EventID === id) || {}).Name || "";
+  const out = d.attachments.filter(a => !eventId || a.EventID === eventId).map(a => ({ title: a.Title, url: a.FileURL, sub: a.Type || name(a.EventID), ev: name(a.EventID) }));
+  d.schedule.filter(s => s.FileURL && (!eventId || s.EventID === eventId))
+    .forEach(s => out.push({ title: s.FileTitle || s.Session, url: s.FileURL, sub: `Session · ${s.Session}`, ev: name(s.EventID) }));
+  return out.filter(f => safeUrl(f.url));
+}
+function fileRow(f) {
+  return `<a class="card file" href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">
+    <span class="file-ic">${ICON.file}</span>
+    <span class="file-info"><b>${esc(f.title || "Untitled file")}</b><small>${esc(f.ev ? `${f.ev} · ${f.sub}` : f.sub)}</small></span>
+    <span class="chev">${ICON.chev}</span></a>`;
+}
+function renderFiles() {
+  const q = lc($("#fileSearch").value);
+  const list = filesFor(null).filter(f => !q || lc(f.title).includes(q) || lc(f.ev).includes(q));
+  $("#fileList").innerHTML = list.length ? list.map(fileRow).join("") : empty(q ? "No files match that search." : "No files shared yet.");
+}
+$("#fileSearch").addEventListener("input", renderFiles);
+
+/* ================================= profile ================================= */
+function renderMe() {
+  const me = STATE.data.me, apps = STATE.data.apps;
+  $("#meCard").innerHTML = `<span class="avatar">${me.picture ? `<img src="${esc(safeUrl(me.picture))}" alt="" referrerpolicy="no-referrer">` : esc(initials(me.name))}</span>
+    <div style="min-width:0"><h2>${esc(me.name)}</h2><div class="muted" style="font-size:.85rem;overflow:hidden;text-overflow:ellipsis">${esc(me.email)}</div>
+    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${me.department ? `<span class="chip green">${esc(me.department)}</span>` : ""}${me.isAdmin ? `<span class="chip yellow">Admin</span>` : ""}</div></div>`;
+  const n = s => apps.filter(a => a.access === s).length;
+  $("#meStats").innerHTML = `<div class="card stat"><b>${n("open")}</b><span>Open</span></div><div class="card stat"><b>${n("pending")}</b><span>Requested</span></div><div class="card stat"><b>${n("locked")}</b><span>Locked</span></div>`;
+}
+$("#signOutBtn").addEventListener("click", signOut);
+$("#refreshBtn").addEventListener("click", () => { loadData(); if (location.hash.startsWith("#admin")) loadAdmin(true); });
+
+/* install */
+(function installSteps() {
+  const ua = navigator.userAgent, ios = /iPad|iPhone|iPod/.test(ua), android = /Android/.test(ua);
+  $("#installSteps").innerHTML = ios
+    ? "<li>Open this page in <b>Safari</b></li><li>Tap the <b>Share</b> button (square with an arrow)</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b></li>"
+    : android
+      ? "<li>Open this page in <b>Chrome</b></li><li>Tap <b>⋮</b> at the top right</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b></li>"
+      : "<li>Open this page in <b>Chrome</b> or <b>Edge</b></li><li>Click the <b>install icon</b> at the right end of the address bar</li><li>Click <b>Install</b></li>";
+  let deferred = null;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; $("#installBtn").hidden = false; });
+  $("#installBtn").addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $("#installBtn").hidden = true; });
+})();
+
+/* =============================== bottom sheet ============================== */
+let lastFocus = null;
+function openSheet(title, html, onMount) {
+  lastFocus = document.activeElement;
+  $("#sheetTitle").textContent = title;
+  const body = $("#sheetBody"); body.innerHTML = html; body.scrollTop = 0;
+  $("#sheetWrap").hidden = false; document.body.style.overflow = "hidden";
+  if (onMount) onMount(body);
+  setTimeout(() => (body.querySelector("input:not([type=hidden]),textarea,select,button") || $("#sheetWrap [data-close]")).focus(), 60);
+}
+function closeSheet() {
+  if ($("#sheetWrap").hidden) return;
+  $("#sheetWrap").hidden = true; document.body.style.overflow = "";
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+$("#sheetWrap").addEventListener("click", e => { if (e.target.closest("[data-close]")) closeSheet(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+/* ================================== ADMIN ================================== */
+async function loadAdmin(force = false) {
+  if (STATE.admin && !force) return STATE.admin;
+  const data = await api("admin_overview"); delete data.ok;
+  STATE.admin = data;
+  STATE.data.pendingRequests = data.requests.filter(r => lc(r.status) === "pending").length;
+  return data;
+}
+async function showAdmin(tab) {
+  STATE.admTab = ["requests", "people", "apps", "content"].includes(tab) ? tab : "requests";
+  const pend = STATE.data.pendingRequests || 0;
+  $$("#admTabs button").forEach(b => {
+    b.classList.toggle("on", b.dataset.v === STATE.admTab);
+    if (b.dataset.v === "requests") b.innerHTML = `Requests${pend ? `<span class="n">${pend}</span>` : ""}`;
+  });
+  const body = $("#admBody");
+  if (!STATE.admin) {
+    body.innerHTML = `<div class="skel" style="height:96px;margin-bottom:12px"></div><div class="skel" style="height:96px"></div>`;
+    try { await loadAdmin(); } catch (e) { body.innerHTML = empty(e.message); return; }
+    return showAdmin(STATE.admTab);
+  }
+  ({ requests: renderRequests, people: renderPeople, apps: renderAppsAdmin, content: renderContent })[STATE.admTab]();
+}
+$("#admTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) location.hash = "#admin/" + b.dataset.v; });
+
+async function afterAdminChange(msg) {
+  toast(msg);
+  try { await Promise.all([loadAdmin(true), refreshDataQuiet()]); } catch (e) { if (e.code !== "auth") toast(e.message, "err"); }
+  if (location.hash.startsWith("#admin")) showAdmin(STATE.admTab);
+}
+async function refreshDataQuiet() {
+  const data = await api("bootstrap"); delete data.ok;
+  STATE.data = data; STATE.loadedAt = Date.now(); store.set("kc.data", { email: SESSION.email, data });
+  renderAll();
+}
+const appName = id => (STATE.admin.apps.find(a => a.app_id === id) || {}).name || id;
+const appById = id => STATE.admin.apps.find(a => a.app_id === id) || { app_id: id, name: id };
+
+/* ---- requests ---- */
+function renderRequests() {
+  const all = STATE.admin.requests;
+  const pending = all.filter(r => lc(r.status) === "pending");
+  const done = all.filter(r => lc(r.status) !== "pending").slice(0, 40);
+  $("#admBody").innerHTML = (pending.length ? pending.map(r => {
+    const app = appById(r.app_id);
+    return `<div class="card req">
+      <div class="req-top"><span class="ini">${esc(initials(r.name || r.email))}</span>
+        <div style="min-width:0;flex:1"><b style="display:block;font-size:.92rem">${esc(r.name || r.email)}</b><small class="muted" style="font-size:.76rem">${esc(r.email)}</small></div>
+        <small class="muted" style="font-size:.72rem;white-space:nowrap">${esc(fmtDate(r.requested_on, false))}</small></div>
+      <div class="req-app">${appIconHtml({ ...app, id: app.app_id }, "mini-ic")}<span>wants access to <b>${esc(app.name)}</b></span></div>
+      ${r.note ? `<div class="req-note">“${esc(r.note)}”</div>` : ""}
+      <div class="req-actions"><button class="btn btn-ghost btn-sm" data-decide="declined" data-id="${esc(r.RowID)}">Decline</button>
+        <button class="btn btn-primary btn-sm" data-decide="approved" data-id="${esc(r.RowID)}">Approve</button></div>
+    </div>`;
+  }).join("") : `<div class="card" style="padding:6px">${empty("You're all caught up — no requests waiting.")}</div>`)
+  + (done.length ? `<details class="hist"><summary>Recent decisions (${done.length})</summary><div style="margin-top:10px">${done.map(r => `
+      <div class="card row"><span class="ini">${esc(initials(r.name || r.email))}</span>
+        <div class="grow"><b>${esc(r.name || r.email)} · ${esc(appName(r.app_id))}</b><small>${esc(lc(r.status) === "approved" ? "Approved" : "Declined")} by ${esc(r.decided_by)} · ${esc(fmtDate(r.decided_on, false))}</small></div>
+        <span class="chip ${lc(r.status) === "approved" ? "green" : "red"}">${esc(r.status)}</span></div>`).join("")}</div></details>` : "");
+}
+$("#admBody").addEventListener("click", async e => {
+  const b = e.target.closest("[data-decide]"); if (!b) return;
+  b.closest(".req").querySelectorAll("button").forEach(x => x.disabled = true);
+  b.textContent = b.dataset.decide === "approved" ? "Approving…" : "Declining…";
+  try { await api("decide_request", { rowId: b.dataset.id, decision: b.dataset.decide }); afterAdminChange(b.dataset.decide === "approved" ? "Approved — the app is now open for them." : "Request declined."); }
+  catch (err) { if (err.code !== "auth") toast(err.message, "err"); showAdmin("requests"); }
+});
+
+/* ---- people ---- */
+function resolveLevel(app, email, dept, grants, requests) {
+  const mine = grants.filter(g => g.app_id === app.app_id), find = who => mine.find(g => lc(g.who) === who);
+  const rule = find(lc(email)) || (dept ? find(lc(dept)) : null) || find("everyone");
+  let lvl = lc(rule ? rule.level : app.default_access);
+  if (!["open", "locked", "hidden"].includes(lvl)) lvl = "locked";
+  if (lvl !== "open" && requests.some(r => lc(r.email) === lc(email) && r.app_id === app.app_id && lc(r.status) === "pending")) lvl = "pending";
+  return { lvl, direct: !!find(lc(email)) };
+}
+function renderPeople() {
+  $("#admBody").innerHTML = `
+    <div class="toolbar"><label class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr">Search people</span><input id="pplSearch" type="search" placeholder="Search name or email" autocomplete="off"></label>
+    <button class="btn btn-primary" id="pplAdd" aria-label="Give access by email">+ Email</button></div>
+    <p class="muted" style="font-size:.78rem;margin:-4px 2px 12px">Everyone who has signed in appears here. Tap a person to switch their apps on or off.</p>
+    <div id="pplList"></div>`;
+  const draw = () => {
+    const q = lc($("#pplSearch").value);
+    const users = [...STATE.admin.users].filter(u => !q || lc(u.name).includes(q) || lc(u.email).includes(q))
+      .sort((a, b) => String(b.last_login).localeCompare(String(a.last_login)));
+    $("#pplList").innerHTML = users.length ? users.map(u => {
+      const n = STATE.admin.apps.filter(a => a.app_id && resolveLevel(a, u.email, u.department, STATE.admin.grants, []).lvl === "open").length;
+      return `<div class="card row click" data-person="${esc(u.email)}" role="button" tabindex="0">
+        <span class="ini">${u.picture ? `<img src="${esc(safeUrl(u.picture))}" alt="" referrerpolicy="no-referrer">` : esc(initials(u.name || u.email))}</span>
+        <div class="grow"><b>${esc(u.name || u.email)}</b><small>${esc(u.email)}${u.department ? " · " + esc(u.department) : ""}</small></div>
+        <span class="chip green">${n} app${n === 1 ? "" : "s"}</span><span class="chev">${ICON.chev}</span></div>`;
+    }).join("") : empty(q ? "Nobody matches that search." : "Nobody has signed in yet.");
+  };
+  draw();
+  $("#pplSearch").addEventListener("input", draw);
+  $("#pplList").addEventListener("click", e => { const r = e.target.closest("[data-person]"); if (r) openPerson(r.dataset.person); });
+  $("#pplList").addEventListener("keydown", e => { const r = e.target.closest("[data-person]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openPerson(r.dataset.person); } });
+  $("#pplAdd").addEventListener("click", () => openSheet("Give access by email", `
+    <p class="muted" style="font-size:.88rem;margin-top:0">Set up someone's apps before they've signed in for the first time.</p>
+    <div class="f" id="pf"><label for="pEmail">Their Kariwala email</label><input id="pEmail" type="email" placeholder="name@${CONFIG.DOMAIN}" autocomplete="off"></div>
+    <button class="btn btn-primary btn-block" id="pGo">Continue</button>`, body => {
+    const go = () => {
+      const v = lc($("#pEmail", body).value);
+      if (!v.endsWith("@" + CONFIG.DOMAIN)) { $("#pf", body).classList.add("bad"); $("#pf", body).insertAdjacentHTML("beforeend", `<div class="err">Enter a @${CONFIG.DOMAIN} email address.</div>`); return; }
+      openPerson(v);
+    };
+    $("#pGo", body).addEventListener("click", go);
+    $("#pEmail", body).addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  }));
+}
+
+function openPerson(email) {
+  const A = STATE.admin, u = A.users.find(x => lc(x.email) === lc(email)) || { email, name: email };
+  const apps = A.apps.filter(a => a.app_id && a.name);
+  const rows = apps.map(a => {
+    const { lvl } = resolveLevel(a, email, u.department, A.grants, A.requests);
+    const mode = lc(a.default_access) === "open" ? "Open to everyone" : lc(a.default_access) === "hidden" ? "Hidden app" : "Needs approval";
+    return `<div class="row" style="padding:10px 0;margin:0;border-bottom:1px solid var(--line2)">
+      ${appIconHtml({ ...a, id: a.app_id }, "mini-ic")}
+      <div class="grow"><b>${esc(a.name)}</b><small>${lvl === "pending" ? "<span style='color:var(--y6);font-weight:700'>Requested</span> · " : ""}${esc(mode)}</small></div>
+      <label class="sw"><input type="checkbox" data-app="${esc(a.app_id)}" ${lvl === "open" ? "checked" : ""} aria-label="${esc(a.name)} access"><span></span></label></div>`;
+  }).join("");
+  openSheet(u.name || email, `
+    <div class="sheet-app"><span class="ini" style="width:48px;height:48px">${u.picture ? `<img src="${esc(safeUrl(u.picture))}" alt="" referrerpolicy="no-referrer">` : esc(initials(u.name || email))}</span>
+      <div><b>${esc(u.name || email)}</b><div class="muted" style="font-size:.82rem">${esc(email)}${u.last_login ? " · last seen " + esc(fmtDate(u.last_login, false)) : " · hasn't signed in yet"}</div></div></div>
+    <div class="toolbar" style="margin-bottom:18px"><div class="f" style="flex:1;margin:0"><label for="pDept">Department</label><input id="pDept" type="text" value="${esc(u.department)}" placeholder="e.g. Merchandising"></div>
+      <button class="btn btn-ghost" id="pDeptSave" style="align-self:flex-end">Save</button></div>
+    <div class="sub-h">Apps they can use</div>
+    ${rows || empty("Add apps first in the Apps tab.")}
+    <p class="muted" style="font-size:.76rem;margin:14px 0 0">Changes save instantly and show on their phone the next time the app refreshes.</p>`, body => {
+    $("#pDeptSave", body).addEventListener("click", async ev => {
+      const b = ev.currentTarget; b.disabled = true; b.textContent = "Saving…";
+      try { await api("set_user", { email, department: $("#pDept", body).value.trim() }); await loadAdmin(true); if (STATE.admTab === "people") renderPeople(); toast("Department saved."); }
+      catch (err) { if (err.code !== "auth") toast(err.message, "err"); }
+      finally { b.disabled = false; b.textContent = "Save"; }
+    });
+    body.addEventListener("change", async e => {
+      const cb = e.target.closest("input[data-app]"); if (!cb) return;
+      const app = apps.find(a => a.app_id === cb.dataset.app);
+      const level = cb.checked ? "open" : (lc(app.default_access) === "hidden" ? "hidden" : "locked");
+      cb.disabled = true;
+      try {
+        await api("set_access", { email, appId: app.app_id, level });
+        toast(cb.checked ? `${app.name} is now open for ${u.name || email}.` : `${app.name} removed for ${u.name || email}.`);
+        await loadAdmin(true); if (STATE.admTab === "people") renderPeople(); if (STATE.admTab === "requests") renderRequests();
+      } catch (err) { cb.checked = !cb.checked; if (err.code !== "auth") toast(err.message, "err"); }
+      finally { cb.disabled = false; }
     });
   });
 }
 
-let DATA = { events: [], schedule: [], attachments: [], apps: [], access: [], people: [], notices: [], admins: [] };
-
-function parseDate(s){
-  if(!s) return null;
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
+/* ---- apps ---- */
+const MODES = [
+  ["open", "Everyone", "Every Kariwala employee can open it."],
+  ["locked", "Only people I approve", "Others see it greyed out and can request access."],
+  ["hidden", "Hidden", "Only approved people can even see it — for sensitive apps like payroll."]
+];
+function modeChip(m) {
+  m = lc(m);
+  return m === "open" ? `<span class="chip green">Everyone</span>` : m === "hidden" ? `<span class="chip grey">Hidden</span>` : `<span class="chip yellow">Approval</span>`;
 }
-
-function computeStatus(ev){
-  const today = new Date(); today.setHours(0,0,0,0);
-  const start = parseDate(ev.StartDate);
-  const end = parseDate(ev.EndDate) || start;
-  if(!start) return "Upcoming";
-  if(today < start) return "Upcoming";
-  if(end && today > end) return "Past";
-  return "Live";
-}
-
-function fmtDateRange(ev){
-  const start = parseDate(ev.StartDate), end = parseDate(ev.EndDate);
-  const opts = { day:'numeric', month:'short', year:'numeric' };
-  if(!start) return ev.StartDate || '';
-  if(!end || start.toDateString() === end.toDateString()) return start.toLocaleDateString('en-GB', opts);
-  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-  const sOpt = sameMonth ? { day:'numeric' } : { day:'numeric', month:'short' };
-  return `${start.toLocaleDateString('en-GB', sOpt)} – ${end.toLocaleDateString('en-GB', opts)}`;
-}
-
-async function loadAll(spin){
-  if(spin) document.getElementById('refreshBtn').classList.add('spinning');
-  const [events, schedule, attachments, apps, access, people, notices, admins] = await Promise.all([
-    fetchCsv(CONFIG.TABS.events),
-    fetchCsv(CONFIG.TABS.schedule),
-    fetchCsv(CONFIG.TABS.attachments),
-    fetchCsv(CONFIG.TABS.apps),
-    fetchCsv(CONFIG.TABS.access),
-    fetchCsv(CONFIG.TABS.people),
-    fetchCsv(CONFIG.TABS.notices),
-    fetchCsv(CONFIG.TABS.admins)
-  ]);
-  DATA.events = events.filter(e => e.EventID && e.Name);
-  DATA.schedule = schedule.filter(s => s.EventID);
-  DATA.attachments = attachments.filter(a => a.EventID);
-  DATA.apps = apps.filter(a => a.app_id && a.name);
-  DATA.access = access.filter(a => a.app_id && a.who);
-  DATA.people = people.filter(p => p.email);
-  DATA.notices = notices.filter(n => n.title);
-  DATA.admins = admins.filter(a => a.email);
-  if(spin) document.getElementById('refreshBtn').classList.remove('spinning');
-  document.getElementById('last-synced').textContent = 'Last synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
-  renderHome();
-  renderEvents();
-  renderAllFiles();
-  renderAppGrid();
-  renderNotices();
-  updateAdminGate();
-  if(document.getElementById('view-admin').classList.contains('active')) renderAdminList();
-  document.getElementById('more-event-count').textContent = DATA.events.length + ' events on file';
-}
-
-function eventBadge(ev){ return (ev.Badge || ev.Name || '').toUpperCase(); }
-
-function badgeHtml(ev){
-  if(ev.LogoURL){
-    return `<div class="event-badge has-logo"><img src="${driveImageUrl(ev.LogoURL)}" alt="${ev.Name}"></div>`;
-  }
-  return `<div class="event-badge">${eventBadge(ev)}</div>`;
-}
-
-function eventCardHtml(ev){
-  const status = computeStatus(ev);
-  return `
-    <div class="event-card" data-event="${ev.EventID}">
-      ${badgeHtml(ev)}
-      <div class="event-info">
-        <h3>${ev.Name}</h3>
-        ${ev.Location ? `<div class="loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7.5 8-13a8 8 0 1 0-16 0c0 5.5 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg>${ev.Location}</div>` : ''}
-        <div class="date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtDateRange(ev)}</div>
-        <span class="status-pill status-${status}">${status.toUpperCase()}</span>
-      </div>
-      <div class="event-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
-    </div>`;
-}
-
-function emptyHtml(msg){
-  return `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><div>${msg}</div></div>`;
-}
-
-function renderHome(){
-  const upcoming = DATA.events
-    .filter(e => computeStatus(e) !== 'Past')
-    .sort((a,b) => (parseDate(a.StartDate)||0) - (parseDate(b.StartDate)||0))
-    .slice(0,3);
-  const el = document.getElementById('home-upcoming');
-  el.innerHTML = upcoming.length ? upcoming.map(eventCardHtml).join('') :
-    emptyHtml(CONFIG.SHEET_ID.includes('PASTE_YOUR') ? 'Connect a Google Sheet in the config to see events here.' : 'No upcoming events yet.');
-}
-
-let currentSeg = 'Upcoming';
-function renderEvents(){
-  const q = (document.getElementById('eventSearch').value || '').toLowerCase();
-  const list = DATA.events
-    .filter(e => currentSeg === 'Upcoming' ? computeStatus(e) !== 'Past' : computeStatus(e) === 'Past')
-    .filter(e => !q || (e.Name||'').toLowerCase().includes(q) || (e.Location||'').toLowerCase().includes(q))
-    .sort((a,b) => currentSeg === 'Upcoming'
-      ? (parseDate(a.StartDate)||0) - (parseDate(b.StartDate)||0)
-      : (parseDate(b.StartDate)||0) - (parseDate(a.StartDate)||0));
-  const el = document.getElementById('events-list');
-  el.innerHTML = list.length ? list.map(eventCardHtml).join('') : emptyHtml('No ' + currentSeg.toLowerCase() + ' events found.');
-}
-
-function fileIconSvg(url){
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
-}
-
-function fileCardHtml(a){
-  return `
-    <a class="file-card" href="${a.FileURL}" target="_blank" rel="noopener">
-      <div class="file-ic">${fileIconSvg(a.FileURL)}</div>
-      <div class="file-info">
-        <div class="f-title">${a.Title || 'Untitled file'}</div>
-        <div class="f-type">${a.Type || 'Open in Drive'}</div>
-      </div>
-      <button class="file-open" type="button">Open</button>
-    </a>`;
-}
-
-function renderAllFiles(){
-  const el = document.getElementById('all-files-list');
-  const withEvent = DATA.attachments.map(a => {
-    const ev = DATA.events.find(e => e.EventID === a.EventID);
-    return { ...a, eventName: ev ? ev.Name : '' };
+function renderAppsAdmin() {
+  const A = STATE.admin, apps = A.apps.filter(a => a.app_id || a.name);
+  $("#admBody").innerHTML = `<button class="btn btn-primary btn-block" id="appAdd" style="margin-bottom:14px">+ Add an app</button>` +
+    (apps.length ? apps.map(a => {
+      const n = A.grants.filter(g => g.app_id === a.app_id && lc(g.level) === "open" && g.who.includes("@")).length;
+      let host = ""; try { host = a.url ? new URL(a.url).host : "No link yet"; } catch { host = a.url; }
+      return `<div class="card row click" data-edit-app="${esc(a.RowID)}" role="button" tabindex="0">
+        ${appIconHtml({ ...a, id: a.app_id }, "mini-ic")}
+        <div class="grow"><b>${esc(a.name)}</b><small>${esc(host)}${lc(a.default_access) !== "open" ? ` · ${n} approved` : ""}${/soon/i.test(a.status) ? " · coming soon" : ""}</small></div>
+        ${modeChip(a.default_access)}<span class="chev">${ICON.chev}</span></div>`;
+    }).join("") : empty("No apps yet — add your first one."));
+  $("#appAdd").addEventListener("click", () => openAppForm(null));
+  $$("[data-edit-app]").forEach(el => {
+    const open = () => openAppForm(A.apps.find(a => a.RowID === el.dataset.editApp));
+    el.addEventListener("click", open);
+    el.addEventListener("keydown", e => { if (e.key === "Enter") open(); });
   });
-  el.innerHTML = withEvent.length ? withEvent.map(a => `
-    <a class="file-card" href="${a.FileURL}" target="_blank" rel="noopener">
-      <div class="file-ic">${fileIconSvg(a.FileURL)}</div>
-      <div class="file-info">
-        <div class="f-title">${a.Title || 'Untitled file'}</div>
-        <div class="f-type">${a.eventName || a.Type || ''}</div>
-      </div>
-      <button class="file-open" type="button">Open</button>
-    </a>`).join('') : emptyHtml('No files uploaded yet.');
 }
 
-function openDetail(eventId){
-  const ev = DATA.events.find(e => e.EventID === eventId);
-  if(!ev) return;
-  const status = computeStatus(ev);
-  document.getElementById('detail-hero').innerHTML = `
-    ${ev.LogoURL ? `<img class="hero-logo" src="${driveImageUrl(ev.LogoURL)}" alt="${ev.Name}">` : ''}
-    <div class="badge-tag">${status.toUpperCase()}</div>
-    <h1>${ev.Name}</h1>
-    ${ev.Location ? `<div class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7.5 8-13a8 8 0 1 0-16 0c0 5.5 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg>${ev.Location}</div>` : ''}
-    <div class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtDateRange(ev)}</div>
-    ${ev.Description ? `<div class="desc">${ev.Description}</div>` : ''}
-  `;
-
-  const rows = DATA.schedule.filter(s => s.EventID === eventId);
-  const days = [...new Set(rows.map(r => r.Day))];
-  const progEl = document.getElementById('sub-programme');
-  progEl.innerHTML = days.length ? days.map(day => `
-    <div class="day-heading">${day}</div>
-    ${rows.filter(r => r.Day === day).map(r => `
-      <div class="sched-row">
-        <div class="sched-time">${r.Time || ''}</div>
-        <div class="sched-card${r.FileURL ? ' has-file' : ''}">
-          <div class="s-title">${r.Session || ''}</div>
-          ${r.Speaker ? `<div class="s-mod">${r.Speaker}</div>` : ''}
-          ${r.FileURL ? `
-            <a class="s-file" href="${r.FileURL}" target="_blank" rel="noopener" title="${r.FileTitle || 'Open attachment'}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
-            </a>` : ''}
-        </div>
-      </div>`).join('')}
-  `).join('') : emptyHtml('No schedule added yet.');
-
-  const files = DATA.attachments.filter(a => a.EventID === eventId);
-  document.getElementById('sub-attachments').innerHTML = files.length ? files.map(fileCardHtml).join('') : emptyHtml('No files added yet.');
-
-  setSubTab('programme');
-  goto('detail', true);
-}
-
-/* ---------- navigation ---------- */
-const VIEWS = ['home','events','detail','all-files','more','admin'];
-function goto(name, isDetail){
-  VIEWS.forEach(v => document.getElementById('view-' + v).classList.toggle('active', v === name));
-  document.querySelectorAll('.navbtn').forEach(b => b.classList.toggle('active', b.dataset.goto === name));
-  document.getElementById('backBtn').style.display = isDetail ? 'flex' : 'none';
-  if(name === 'admin') renderAdminList();
-  window.scrollTo(0,0);
-}
-document.getElementById('backBtn').addEventListener('click', () => goto('events'));
-
-document.addEventListener('click', (e) => {
-  const gotoEl = e.target.closest('[data-goto]');
-  if(gotoEl){ e.preventDefault(); goto(gotoEl.dataset.goto); return; }
-  const card = e.target.closest('.event-card');
-  if(card){ openDetail(card.dataset.event); return; }
-});
-
-document.getElementById('eventSeg').addEventListener('click', (e) => {
-  const btn = e.target.closest('button'); if(!btn) return;
-  document.querySelectorAll('#eventSeg button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  currentSeg = btn.dataset.status;
-  renderEvents();
-});
-document.getElementById('eventSearch').addEventListener('input', renderEvents);
-
-document.querySelector('.tabbar').addEventListener('click', (e) => {
-  const btn = e.target.closest('button'); if(!btn) return;
-  setSubTab(btn.dataset.sub);
-});
-function setSubTab(name){
-  document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-  document.getElementById('sub-programme').classList.toggle('active', name === 'programme');
-  document.getElementById('sub-attachments').classList.toggle('active', name === 'attachments');
-}
-
-document.getElementById('refreshBtn').addEventListener('click', () => { loadAll(true); showToast('Refreshed from sheet'); });
-document.getElementById('refreshRow').addEventListener('click', () => { loadAll(true); showToast('Refreshed from sheet'); });
-
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 1800);
-}
-
-/* ---------- install instructions (platform aware) ---------- */
-const ua = navigator.userAgent;
-const isIOS = /iPad|iPhone|iPod/.test(ua);
-const isAndroid = /Android/.test(ua);
-const stepsEl = document.getElementById('install-steps-list');
-if(isIOS){
-  stepsEl.innerHTML = `
-    <li>Open this page in <b>Safari</b> (not Chrome)</li>
-    <li>Tap the <b>Share</b> icon at the bottom of the screen</li>
-    <li>Scroll down and tap <b>Add to Home Screen</b></li>
-    <li>Tap <b>Add</b> in the top right</li>`;
-} else if(isAndroid){
-  stepsEl.innerHTML = `
-    <li>Open this page in <b>Chrome</b></li>
-    <li>Tap the <b>⋮</b> menu in the top right</li>
-    <li>Tap <b>Install app</b> (or <b>Add to Home screen</b>)</li>
-    <li>Confirm by tapping <b>Install</b></li>
-    <li>Or just tap the button below if it appears</li>`;
-} else {
-  stepsEl.innerHTML = `
-    <li>Open this page in <b>Chrome</b> or <b>Edge</b></li>
-    <li>Click the <b>install icon</b> in the address bar (or the button below)</li>
-    <li>Click <b>Install</b> in the prompt</li>`;
-}
-
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('installBtn').style.display = 'block';
-});
-document.getElementById('installBtn').addEventListener('click', async () => {
-  if(!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  document.getElementById('installBtn').style.display = 'none';
-});
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
-}
-
-if(CONFIG.APP_LOGO_URL){
-  document.querySelectorAll('.topbar .mark').forEach(el => { el.src = driveImageUrl(CONFIG.APP_LOGO_URL); });
-}
-
-/* ============================= sign-in & access ========================= */
-let ME = null; // { email, name, picture }
-
-function loadMe(){
-  try{
-    const saved = localStorage.getItem('kc_me');
-    if(saved) ME = JSON.parse(saved);
-  }catch(e){}
-}
-function saveMe(me){
-  ME = me;
-  try{ localStorage.setItem('kc_me', JSON.stringify(me)); }catch(e){}
-}
-function signOut(){
-  ME = null;
-  try{ localStorage.removeItem('kc_me'); }catch(e){}
-  updateSignInUI();
-  renderAppGrid();
-  updateAdminGate();
-}
-
-function decodeJwt(token){
-  try{
-    const base = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-    return JSON.parse(decodeURIComponent(atob(base).split('').map(c =>
-      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-  }catch(e){ return null; }
-}
-
-function handleGoogleCredential(response){
-  const payload = decodeJwt(response.credential);
-  if(!payload) return;
-  saveMe({ email: payload.email, name: payload.name, picture: payload.picture, idToken: response.credential });
-  updateSignInUI();
-  renderAppGrid();
-  updateAdminGate();
-}
-
-function updateSignInUI(){
-  const signedOutEl = document.getElementById('signinRow');
-  const signedInEl = document.getElementById('signedInRow');
-  if(ME){
-    signedOutEl.style.display = 'none';
-    signedInEl.style.display = 'flex';
-    document.getElementById('whoAvatar').src = ME.picture || '';
-    document.getElementById('whoName').textContent = ME.name || ME.email;
-    document.getElementById('whoDept').textContent = myDepartment() || ME.email;
-  } else {
-    signedOutEl.style.display = 'block';
-    signedInEl.style.display = 'none';
-  }
-}
-
-function myDepartment(){
-  if(!ME) return '';
-  const row = DATA.people.find(p => (p.email||'').toLowerCase() === ME.email.toLowerCase());
-  return row ? row.department : '';
-}
-
-// Resolves open / locked / hidden for one app, for whoever is (or isn't) signed in.
-function accessLevelFor(app){
-  const rows = DATA.access.filter(a => a.app_id === app.app_id);
-  if(ME){
-    const dept = myDepartment().toLowerCase();
-    const byEmail = rows.find(r => (r.who||'').toLowerCase() === ME.email.toLowerCase());
-    if(byEmail) return byEmail.level;
-    if(dept){
-      const byDept = rows.find(r => (r.who||'').toLowerCase() === dept);
-      if(byDept) return byDept.level;
-    }
-  }
-  const everyone = rows.find(r => (r.who||'').toLowerCase() === 'everyone');
-  if(everyone) return everyone.level;
-  return app.default_access || 'locked';
-}
-
-function appInitial(app){ return (app.name||'?').trim().charAt(0).toUpperCase(); }
-
-function renderAppGrid(){
-  const grid = document.getElementById('app-grid');
-  const q = (document.getElementById('appSearch').value || '').toLowerCase();
-  let apps = DATA.apps.filter(a => {
-    const level = accessLevelFor(a);
-    if(level === 'hidden') return false;
-    if(q && !(a.name||'').toLowerCase().includes(q)) return false;
-    return true;
-  });
-  if(!apps.length){
-    grid.innerHTML = emptyHtml(DATA.apps.length ? 'No apps match that search.' : 'No apps listed yet.');
-    return;
-  }
-  grid.innerHTML = apps.map(a => {
-    const level = accessLevelFor(a);
-    const locked = level === 'locked';
-    const colour = a.colour || '#10233F';
-    const iconInner = a.icon && a.icon.trim().startsWith('http')
-      ? `<img src="${driveImageUrl(a.icon)}" alt="${a.name}">`
-      : (a.icon && a.icon.trim().includes('drive.google.com')
-          ? `<img src="${driveImageUrl(a.icon)}" alt="${a.name}">`
-          : appInitial(a));
-    return `
-      <button class="app-tile${locked ? ' locked' : ''}" data-app="${a.app_id}" data-url="${a.url||''}" data-locked="${locked}">
-        <div class="at-icon" style="${locked ? '' : `background:${colour}`}">${iconInner}
-          ${a.badge_count && !locked ? `<span class="at-badge">${a.badge_count}</span>` : ''}
-        </div>
-        ${locked ? `<div class="at-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : ''}
-        <span>${a.name}</span>
-      </button>`;
-  }).join('');
-}
-
-function requestAccess(app){
-  if(CONFIG.REQUEST_FORM_BASE_URL && CONFIG.REQUEST_FORM_FIELDS.app){
-    const f = CONFIG.REQUEST_FORM_FIELDS;
-    const params = new URLSearchParams();
-    if(ME && f.name) params.set(f.name, ME.name || '');
-    if(ME && f.email) params.set(f.email, ME.email || '');
-    if(f.app) params.set(f.app, app.name);
-    window.open(`${CONFIG.REQUEST_FORM_BASE_URL}?${params.toString()}`, '_blank');
-  } else {
-    showToast(`Ask ${app.admin_contact || 'your admin'} for access to ${app.name}`);
-  }
-}
-
-document.getElementById('app-grid').addEventListener('click', (e) => {
-  const tile = e.target.closest('.app-tile'); if(!tile) return;
-  const app = DATA.apps.find(a => a.app_id === tile.dataset.app);
-  if(!app) return;
-  if(tile.dataset.locked === 'true'){ requestAccess(app); return; }
-  if(app.url) window.open(app.url, '_blank', 'noopener');
-});
-document.getElementById('appSearch').addEventListener('input', renderAppGrid);
-document.getElementById('signOutBtn').addEventListener('click', signOut);
-
-function renderNotices(){
-  const el = document.getElementById('notices-list');
-  const rows = [...DATA.notices].sort((a,b) => {
-    const ap = (a.pinned||'').toLowerCase() === 'yes' ? 1 : 0;
-    const bp = (b.pinned||'').toLowerCase() === 'yes' ? 1 : 0;
-    if(ap !== bp) return bp - ap;
-    return (parseDate(b.date)||0) - (parseDate(a.date)||0);
-  }).slice(0, 5);
-  el.innerHTML = rows.length ? rows.map(n => `
-    <div class="notice-card${(n.pinned||'').toLowerCase()==='yes' ? ' pinned' : ''}">
-      <div class="n-top"><div class="n-title">${n.title}</div><div class="n-date">${n.date || ''}</div></div>
-      <div class="n-body">${n.body || ''}</div>
-    </div>`).join('') : emptyHtml('No notices right now.');
-}
-
-/* ============================= admin panel =============================== */
-const ADMIN_SCHEMAS = {
-  Events:      { idField: 'EventID',  titleField: 'Name',    subField: 'Location',
-                 fields: ['EventID','Name','Badge','Location','StartDate','EndDate','Description','LogoURL'],
-                 help: { StartDate: 'Format: YYYY-MM-DD, e.g. 2026-08-15', EndDate: 'Format: YYYY-MM-DD' } },
-  Schedule:    { idField: 'RowID',    titleField: 'Session', subField: 'Time',
-                 fields: ['EventID','Day','Time','Session','Speaker','FileURL','FileTitle'] },
-  Attachments: { idField: 'RowID',    titleField: 'Title',   subField: 'EventID',
-                 fields: ['EventID','Title','FileURL','Type'] }
-};
-let adminTable = 'Events';
-
-function isMeAdmin(){
-  return !!ME && DATA.admins.some(a => (a.email||'').toLowerCase() === ME.email.toLowerCase());
-}
-
-function updateAdminGate(){
-  const show = isMeAdmin();
-  document.getElementById('adminGroupLabel').style.display = show ? 'block' : 'none';
-  document.getElementById('adminGroupList').style.display = show ? 'block' : 'none';
-}
-
-async function callApi(action, table, payload){
-  if(!CONFIG.APPS_SCRIPT_URL){
-    showToast('Admin editing isn\'t connected yet — see README Step 4.');
-    return { ok: false };
-  }
-  if(!ME || !ME.idToken){
-    showToast('Please sign in again.');
-    return { ok: false };
-  }
-  try{
-    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight Apps Script can't handle
-      body: JSON.stringify({ action, table, idToken: ME.idToken, ...payload })
+function openAppForm(app) {
+  const A = STATE.admin, isNew = !app; app = app || { default_access: "locked", status: "live", colour: SWATCHES[0].c };
+  const sw = tileColour({ ...app, id: app.app_id || "new" });
+  const people = isNew ? [] : A.grants.filter(g => g.app_id === app.app_id && lc(g.level) === "open");
+  openSheet(isNew ? "Add an app" : `Edit ${app.name}`, `
+    <div class="f" data-f="name"><label for="aName">App name</label><input id="aName" type="text" value="${esc(app.name)}" placeholder="e.g. Suraksha"></div>
+    <div class="f" data-f="url"><label for="aUrl">Link</label><input id="aUrl" type="url" value="${esc(app.url)}" placeholder="https://…"><div class="help">Where the tile takes people. Leave empty if it's not live yet.</div></div>
+    <div class="f"><label>Who can use it</label><div class="opts">${MODES.map(([v, t, d]) => `
+      <label class="opt"><input type="radio" name="aMode" value="${v}" ${lc(app.default_access || "locked") === v ? "checked" : ""}><span><b>${t}</b><small>${d}</small></span></label>`).join("")}</div></div>
+    <div class="f"><label>Tile colour</label><div class="swatches">${SWATCHES.map(s => `
+      <label class="swatch" title="${s.name}"><input type="radio" name="aCol" value="${s.c}" ${lc(sw.c) === lc(s.c) ? "checked" : ""} aria-label="${s.name}"><span style="--c:${s.c}"></span></label>`).join("")}</div></div>
+    <div class="f"><label for="aIcon">Icon image link <span style="font-weight:500">(optional)</span></label><input id="aIcon" type="url" value="${esc(app.icon)}" placeholder="Google Drive share link or image URL"><div class="help">Leave empty to show the first letter on the tile colour.</div></div>
+    <div class="f"><label for="aGroup">Team / group</label><input id="aGroup" type="text" value="${esc(app.group)}" placeholder="e.g. Operations"></div>
+    <div class="f"><label for="aContact">Access managed by</label><input id="aContact" type="text" value="${esc(app.admin_contact)}" placeholder="e.g. Rohan"><div class="help">Shown to people when they request access.</div></div>
+    <div class="f"><label class="check"><input type="checkbox" id="aSoon" ${/soon/i.test(app.status) ? "checked" : ""}> Mark as coming soon</label></div>
+    ${isNew ? "" : `<div class="divider"></div><div class="sub-h">People approved for this app (${people.length})</div>
+      ${people.length ? people.map(g => `<div class="row" style="padding:8px 0;margin:0;border-bottom:1px solid var(--line2)">
+        <span class="ini">${esc(initials(g.who))}</span><div class="grow"><b>${esc(g.who)}</b><small>Added by ${esc(g.granted_by || "—")} · ${esc(fmtDate(g.granted_on, false))}</small></div>
+        ${g.who.includes("@") ? `<button class="btn btn-ghost btn-sm" data-revoke="${esc(g.who)}">Remove</button>` : ""}</div>`).join("") : `<p class="muted" style="font-size:.84rem">Nobody yet.</p>`}
+      <div class="toolbar" style="margin-top:12px"><div class="f" style="flex:1;margin:0"><input id="aGrant" type="email" placeholder="name@${CONFIG.DOMAIN}" aria-label="Email to approve"></div><button class="btn btn-ghost" id="aGrantBtn">Approve</button></div>`}
+    <div class="form-actions">
+      ${isNew ? "" : `<button class="btn btn-danger" id="aDel">Delete</button>`}
+      <button class="btn btn-primary" id="aSave">${isNew ? "Add app" : "Save changes"}</button>
+    </div>`, body => {
+    $("#aSave", body).addEventListener("click", async ev => {
+      $$(".f.bad", body).forEach(f => { f.classList.remove("bad"); f.querySelector(".err")?.remove(); });
+      const name = $("#aName", body).value.trim(), url = $("#aUrl", body).value.trim();
+      const bad = (k, m) => { const f = $(`[data-f=${k}]`, body); f.classList.add("bad"); f.insertAdjacentHTML("beforeend", `<div class="err">${m}</div>`); };
+      if (!name) return bad("name", "Give the app a name.");
+      if (url && !safeUrl(url)) return bad("url", "Use a full link starting with https://");
+      const data = {
+        name, url, icon: $("#aIcon", body).value.trim(), group: $("#aGroup", body).value.trim(),
+        admin_contact: $("#aContact", body).value.trim(),
+        default_access: ($("input[name=aMode]:checked", body) || {}).value || "locked",
+        colour: ($("input[name=aCol]:checked", body) || {}).value || SWATCHES[0].c,
+        status: $("#aSoon", body).checked ? "coming soon" : "live"
+      };
+      const b = ev.currentTarget; b.disabled = true; b.textContent = "Saving…";
+      try {
+        await api("crud", { table: "Apps", op: isNew ? "add" : "update", rowId: app.RowID, data });
+        closeSheet(); afterAdminChange(isNew ? `${name} added.` : "Saved.");
+      } catch (err) { b.disabled = false; b.textContent = isNew ? "Add app" : "Save changes"; if (err.code !== "auth") toast(err.message, "err"); }
     });
-    return await res.json();
-  }catch(err){
-    return { ok: false, error: 'Could not reach the write API. Check the connection and try again.' };
-  }
-}
-
-function adminStatus(msg, ok){
-  document.getElementById('admin-status').innerHTML = `<div class="banner ${ok ? 'ok' : 'err'}">${msg}</div>`;
-  setTimeout(() => { document.getElementById('admin-status').innerHTML = ''; }, 4000);
-}
-
-function tableRows(table){
-  if(table === 'Events') return DATA.events;
-  if(table === 'Schedule') return DATA.schedule;
-  if(table === 'Attachments') return DATA.attachments;
-  return [];
-}
-
-function renderAdminList(){
-  const wrap = document.getElementById('view-admin');
-  if(!isMeAdmin()){
-    wrap.querySelector('#admin-list').innerHTML = '';
-    wrap.querySelector('#admin-form-wrap').innerHTML = '';
-    document.getElementById('adminTabbar').style.display = 'none';
-    document.getElementById('adminAddBtn').style.display = 'none';
-    document.getElementById('admin-list').innerHTML = `<div class="admin-gate">Sign in with an admin account (see the Admins tab in the Sheet) to edit content here.</div>`;
-    return;
-  }
-  document.getElementById('adminTabbar').style.display = 'flex';
-  document.getElementById('adminAddBtn').style.display = 'block';
-  const schema = ADMIN_SCHEMAS[adminTable];
-  const rows = tableRows(adminTable);
-  const list = document.getElementById('admin-list');
-  list.innerHTML = rows.length ? rows.map((row, i) => `
-    <div class="admin-row">
-      <div class="ar-info">
-        <div class="ar-title">${row[schema.titleField] || '(untitled)'}</div>
-        <div class="ar-sub">${row[schema.subField] || ''}</div>
-      </div>
-      <button class="ar-btn" data-edit="${i}"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
-      <button class="ar-btn danger" data-del="${i}"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
-    </div>`).join('') : emptyHtml('Nothing here yet — tap "+ Add new" to create one.');
-}
-
-function openAdminForm(existingRow){
-  const schema = ADMIN_SCHEMAS[adminTable];
-  const isEdit = !!existingRow;
-  const formHtml = `
-    <div class="admin-form">
-      ${schema.fields.map(f => `
-        <div class="af-row">
-          <label>${f}${schema.help && schema.help[f] ? ` — ${schema.help[f]}` : ''}</label>
-          ${f === 'Description' || f === 'Session'
-            ? `<textarea data-field="${f}">${isEdit ? (existingRow[f]||'') : ''}</textarea>`
-            : `<input data-field="${f}" value="${isEdit ? (existingRow[f]||'').toString().replace(/"/g,'&quot;') : ''}">`}
-        </div>`).join('')}
-      <div class="af-actions">
-        <button class="af-save" id="afSave">${isEdit ? 'Save changes' : 'Add'}</button>
-        <button class="af-cancel" id="afCancel">Cancel</button>
-      </div>
-    </div>`;
-  document.getElementById('admin-form-wrap').innerHTML = formHtml;
-  document.getElementById('afCancel').addEventListener('click', () => { document.getElementById('admin-form-wrap').innerHTML = ''; });
-  document.getElementById('afSave').addEventListener('click', async () => {
-    const data = {};
-    schema.fields.forEach(f => { data[f] = document.querySelector(`[data-field="${f}"]`).value.trim(); });
-    document.getElementById('afSave').textContent = 'Saving…';
-    let result;
-    if(isEdit){
-      result = await callApi('update', adminTable, {
-        rowId: existingRow.RowID || '',
-        original: existingRow,
-        data
-      });
-    } else {
-      result = await callApi('add', adminTable, { data });
-    }
-    if(result.ok){
-      document.getElementById('admin-form-wrap').innerHTML = '';
-      adminStatus(isEdit ? 'Saved.' : 'Added.', true);
-      await loadAll(false);
-    } else {
-      adminStatus(result.error || 'Something went wrong.', false);
-      document.getElementById('afSave').textContent = isEdit ? 'Save changes' : 'Add';
-    }
+    if (isNew) return;
+    $("#aDel", body).addEventListener("click", async () => {
+      if (!confirm(`Delete ${app.name} from Kariwala Connect? This removes the tile for everyone.`)) return;
+      try { await api("crud", { table: "Apps", op: "delete", rowId: app.RowID }); closeSheet(); afterAdminChange(`${app.name} deleted.`); }
+      catch (err) { if (err.code !== "auth") toast(err.message, "err"); }
+    });
+    const revokeLevel = lc(app.default_access) === "hidden" ? "hidden" : "locked";
+    body.addEventListener("click", async e => {
+      const r = e.target.closest("[data-revoke]"); if (!r) return;
+      r.disabled = true;
+      try { await api("set_access", { email: r.dataset.revoke, appId: app.app_id, level: revokeLevel }); await loadAdmin(true); openAppForm(A.apps.find(a => a.RowID === app.RowID) || app); toast("Removed."); }
+      catch (err) { r.disabled = false; if (err.code !== "auth") toast(err.message, "err"); }
+    });
+    $("#aGrantBtn", body).addEventListener("click", async ev => {
+      const email = lc($("#aGrant", body).value);
+      if (!email.endsWith("@" + CONFIG.DOMAIN)) return toast(`Enter a @${CONFIG.DOMAIN} email.`, "err");
+      ev.currentTarget.disabled = true;
+      try { await api("set_access", { email, appId: app.app_id, level: "open" }); await loadAdmin(true); openAppForm(STATE.admin.apps.find(a => a.RowID === app.RowID) || app); toast(`${app.name} opened for ${email}.`); }
+      catch (err) { ev.currentTarget.disabled = false; if (err.code !== "auth") toast(err.message, "err"); }
+    });
   });
 }
 
-document.getElementById('adminAddBtn').addEventListener('click', () => openAdminForm(null));
-
-document.getElementById('adminTabbar').addEventListener('click', (e) => {
-  const btn = e.target.closest('button'); if(!btn) return;
-  document.querySelectorAll('#adminTabbar button').forEach(b => b.classList.toggle('active', b === btn));
-  adminTable = btn.dataset.table;
-  document.getElementById('admin-form-wrap').innerHTML = '';
-  renderAdminList();
-});
-
-document.getElementById('admin-list').addEventListener('click', async (e) => {
-  const editBtn = e.target.closest('[data-edit]');
-  const delBtn = e.target.closest('[data-del]');
-  const rows = tableRows(adminTable);
-  if(editBtn){ openAdminForm(rows[+editBtn.dataset.edit]); return; }
-  if(delBtn){
-    const row = rows[+delBtn.dataset.del];
-    const schema = ADMIN_SCHEMAS[adminTable];
-    if(!confirm(`Delete "${row[schema.titleField] || 'this row'}"? This can't be undone.`)) return;
-    const result = await callApi('delete', adminTable, { rowId: row.RowID || '', original: row });
-    if(result.ok){ adminStatus('Deleted.', true); await loadAll(false); }
-    else adminStatus(result.error || 'Could not delete.', false);
+/* ---- content (events, schedule, files, notices, admins) ---- */
+const FORMS = {
+  Events: {
+    label: "Events", item: "event", rows: () => STATE.data.events, title: r => r.Name, sub: r => `${fmtRange(r)}${r.Location ? " · " + r.Location : ""}`,
+    fields: [["Name", "Event name", "text", 1], ["StartDate", "Start date", "date", 1], ["EndDate", "End date", "date"], ["Location", "Location", "text"],
+      ["Badge", "Badge text", "text", 0, "Short text shown on the event card when there's no logo."], ["Description", "Description", "textarea"],
+      ["LogoURL", "Logo image link", "url", 0, "Google Drive share link (set to 'Anyone with the link') or an image URL."],
+      ["EventID", "Short code", "text", 0, "Leave empty and it's made from the name. Don't change it once sessions are added."]]
+  },
+  Schedule: {
+    label: "Programme", item: "session", rows: () => STATE.data.schedule, title: r => r.Session, sub: r => `${evName(r.EventID)} · ${r.Day || ""} ${r.Time || ""}`,
+    fields: [["EventID", "Event", "event", 1], ["Day", "Day", "text", 0, "e.g. Friday, 31 July — sessions with the same day are grouped."], ["Time", "Time", "text", 0, "e.g. 10:00 am – 10:30 am"],
+      ["Session", "Session", "textarea", 1], ["Speaker", "Speaker / moderator", "text"], ["FileURL", "Attachment link", "url", 0, "Shows a link button on this session."], ["FileTitle", "Attachment name", "text"]]
+  },
+  Attachments: {
+    label: "Files", item: "file", rows: () => STATE.data.attachments, title: r => r.Title, sub: r => `${evName(r.EventID)}${r.Type ? " · " + r.Type : ""}`,
+    fields: [["EventID", "Event", "event", 1], ["Title", "File name", "text", 1], ["FileURL", "Link", "url", 1, "Google Drive share link set to 'Anyone with the link — Viewer'."], ["Type", "Type", "text", 0, "e.g. Presentation, PDF"]]
+  },
+  Notices: {
+    label: "Notices", item: "notice", rows: () => STATE.data.notices, title: r => r.title, sub: r => `${fmtDate(r.date)}${lc(r.pinned) === "yes" ? " · pinned" : ""}`,
+    fields: [["title", "Title", "text", 1], ["body", "Message", "textarea"], ["date", "Date", "date"], ["pinned", "Pin to the top", "check"]]
+  },
+  Birthdays: {
+    label: "Birthdays", item: "birthday",
+    rows: () => [...(STATE.data.birthdays || [])].sort((a, b) => (monthIdx(a.month) - monthIdx(b.month)) || (a.day - b.day)),
+    title: r => r.name, sub: r => `${r.day} ${r.month}${r.location ? " · " + r.location : ""}`,
+    fields: [["name", "Name", "text", 1], ["day", "Day", "day", 1], ["month", "Month", "month", 1],
+      ["location", "Office / unit", "text", 0, "e.g. HO or Factory — optional."]]
+  },
+  Admins: {
+    label: "Admins", item: "admin", rows: () => STATE.admin.admins, title: r => r.email, sub: () => "Can approve access and edit content",
+    fields: [["email", "Kariwala email", "email", 1]]
   }
-});
+};
+const evName = id => (STATE.data.events.find(e => e.EventID === id) || {}).Name || id || "";
 
-loadMe();
-updateSignInUI();
-if(CONFIG.GOOGLE_CLIENT_ID){
-  window.addEventListener('load', () => {
-    if(!window.google) return;
-    google.accounts.id.initialize({ client_id: CONFIG.GOOGLE_CLIENT_ID, callback: handleGoogleCredential });
-    google.accounts.id.renderButton(document.getElementById('gSignIn'), { theme: 'outline', size: 'large', shape: 'pill', width: 260 });
-  });
-} else {
-  document.getElementById('gSignIn').innerHTML = '<div class="empty" style="padding:14px;">Sign-in not set up yet — see README.</div>';
+function renderContent() {
+  const cfg = FORMS[STATE.contentTab], rows = cfg.rows() || [];
+  $("#admBody").innerHTML = `
+    <div class="seg" id="ctTabs">${Object.entries(FORMS).map(([k, v]) => `<button data-t="${k}" class="${k === STATE.contentTab ? "on" : ""}">${v.label}</button>`).join("")}</div>
+    <button class="btn btn-primary btn-block" id="ctAdd" style="margin-bottom:14px">+ Add ${cfg.item}</button>
+    ${rows.length ? rows.map((r, i) => `<div class="card row click" data-row="${i}" role="button" tabindex="0">
+      <div class="grow"><b>${esc(cfg.title(r) || "(untitled)")}</b><small>${esc(cfg.sub(r))}</small></div><span class="chev">${ICON.chev}</span></div>`).join("")
+      : empty(`No ${cfg.label.toLowerCase()} yet.`)}
+    ${STATE.contentTab === "Admins" ? `<p class="muted" style="font-size:.76rem;margin-top:10px">content@kariwala.com is always an admin.</p>` : ""}
+    ${STATE.contentTab === "Birthdays" ? `<p class="muted" style="font-size:.76rem;margin-top:10px">Everyone sees today's birthdays on their home screen, and the birthday email goes to the whole team automatically every morning.</p>` : ""}`;
+  $("#ctTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { STATE.contentTab = b.dataset.t; renderContent(); } });
+  $("#ctAdd").addEventListener("click", () => openContentForm(null));
+  const pick = e => { const r = e.target.closest("[data-row]"); if (r) openContentForm(rows[+r.dataset.row]); };
+  $$("[data-row]").forEach(el => { el.addEventListener("click", pick); el.addEventListener("keydown", e => { if (e.key === "Enter") pick(e); }); });
 }
 
-loadAll(false);
+function openContentForm(row) {
+  const table = STATE.contentTab, cfg = FORMS[table], isNew = !row; row = row || {};
+  const field = ([k, label, type, req, help]) => {
+    const v = row[k] ?? "", id = "c_" + k, rq = req ? " *" : "";
+    let input;
+    if (type === "textarea") input = `<textarea id="${id}">${esc(v)}</textarea>`;
+    else if (type === "check") return `<div class="f"><label class="check"><input type="checkbox" id="${id}" ${lc(v) === "yes" ? "checked" : ""}> ${esc(label)}</label></div>`;
+    else if (type === "day") input = `<select id="${id}"><option value="">Day…</option>${Array.from({ length: 31 }, (_, i) => `<option ${String(i + 1) === String(v) ? "selected" : ""}>${i + 1}</option>`).join("")}</select>`;
+    else if (type === "month") input = `<select id="${id}"><option value="">Month…</option>${MONTHS.map((m, i) => `<option value="${m}" ${monthIdx(v) === i ? "selected" : ""}>${m}</option>`).join("")}</select>`;
+    else if (type === "event") input = `<select id="${id}"><option value="">Choose an event…</option>${STATE.data.events.map(e => `<option value="${esc(e.EventID)}" ${e.EventID === v ? "selected" : ""}>${esc(e.Name)}</option>`).join("")}</select>`;
+    else if (type === "date") input = /^\d{4}-\d{2}-\d{2}$/.test(v) || !v ? `<input id="${id}" type="date" value="${esc(v)}">` : `<input id="${id}" type="text" value="${esc(v)}">`;
+    else input = `<input id="${id}" type="${type}" value="${esc(v)}">`;
+    return `<div class="f" data-f="${k}"><label for="${id}">${esc(label)}${rq}</label>${input}${help ? `<div class="help">${esc(help)}</div>` : ""}</div>`;
+  };
+  openSheet(isNew ? `Add ${cfg.item}` : `Edit ${cfg.item}`, cfg.fields.map(field).join("") + `
+    <div class="form-actions">${isNew ? "" : `<button class="btn btn-danger" id="cDel">Delete</button>`}<button class="btn btn-primary" id="cSave">${isNew ? "Add" : "Save changes"}</button></div>`, body => {
+    $("#cSave", body).addEventListener("click", async ev => {
+      $$(".f.bad", body).forEach(f => { f.classList.remove("bad"); f.querySelector(".err")?.remove(); });
+      const data = {}; let ok = true;
+      for (const [k, label, type, req] of cfg.fields) {
+        const el = $("#c_" + k, body);
+        const val = type === "check" ? (el.checked ? "yes" : "") : el.value.trim();
+        const bad = m => { ok = false; const f = $(`[data-f=${k}]`, body); f.classList.add("bad"); f.insertAdjacentHTML("beforeend", `<div class="err">${m}</div>`); };
+        if (req && !val) bad(`${label} is needed.`);
+        else if (type === "url" && val && !safeUrl(val)) bad("Use a full link starting with https://");
+        else if (type === "email" && val && !lc(val).endsWith("@" + CONFIG.DOMAIN)) bad(`Use a @${CONFIG.DOMAIN} email.`);
+        data[k] = val;
+      }
+      if (table === "Events" && !data.EventID) data.EventID = slug(data.Name) || "event-" + Date.now();
+      if (table === "Events" && isNew && STATE.data.events.some(e => e.EventID === data.EventID)) data.EventID += "-" + Date.now().toString(36).slice(-4);
+      if (!ok) return;
+      const b = ev.currentTarget; b.disabled = true; b.textContent = "Saving…";
+      try { await api("crud", { table, op: isNew ? "add" : "update", rowId: row.RowID, data }); closeSheet(); afterAdminChange(isNew ? "Added." : "Saved."); }
+      catch (err) { b.disabled = false; b.textContent = isNew ? "Add" : "Save changes"; if (err.code !== "auth") toast(err.message, "err"); }
+    });
+    if (!isNew) $("#cDel", body).addEventListener("click", async () => {
+      if (!confirm(`Delete this ${cfg.item}? This can't be undone.`)) return;
+      try { await api("crud", { table, op: "delete", rowId: row.RowID }); closeSheet(); afterAdminChange("Deleted."); }
+      catch (err) { if (err.code !== "auth") toast(err.message, "err"); }
+    });
+  });
+}
+
+/* ================================== start ================================== */
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+boot();
 </script>
 </body>
 </html>
